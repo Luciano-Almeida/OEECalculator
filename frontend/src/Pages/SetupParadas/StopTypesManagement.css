@@ -1,0 +1,97 @@
+.stop-types-management {
+    padding: 20px;
+}
+
+.stop-types-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.stop-types-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 48%; /* Dividindo a tela em duas colunas */
+    padding: 10px;
+    background-color: #f4f4f4;
+    border-radius: 8px;
+}
+
+.stop-types-column h2 {
+    font-size: 1.5em;
+    margin-bottom: 15px;
+}
+
+.stop-types-management input {
+    padding: 8px;
+    font-size: large;
+    font-weight: bold;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-right: 10px;
+    width: 100%;
+}
+
+.stop-types-management button {
+    padding: 8px 12px;
+    width: -webkit-fill-available
+}
+
+.stop-types-management ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.stop-types-management li {
+    color: #000;
+    font-size: large;
+    font-weight: bold;
+    background-color: lightgray; /* Cinza claro para itens da lista */
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+}
+
+.separador {
+    height: 4px;
+    background: linear-gradient(to right, #1f8a4c, #229752); /* Um gradiente suave */
+    border-radius: 5px;
+    margin: 20px 0;
+}
+
+.actions{
+    display: flex;
+    gap: 10px;
+}
+
+  
+button.save {
+background-color: #2196F3; /* Azul para salvar */
+}
+
+button.delete {
+background-color: #f44336; /* Vermelho para excluir */
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .stop-types-container {
+        flex-direction: column;
+    }
+
+    .stop-types-column {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .stop-types-management input,
+    .stop-management select {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .stop-types-management button,
+    .stop-management button {
+        width: 100%;
+    }
+}

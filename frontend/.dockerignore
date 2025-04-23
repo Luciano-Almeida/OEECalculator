@@ -1,0 +1,15 @@
+# General ignore
+.git
+.cache
+#.env
+.gitignore
+.gitattributes
+*.md
+!README*.md
+README-secret.md
+
+
+# For REACT -> Artifacts that will be built during image creation.
+# This should contain all files created during `npm run build`.
+build
+node_modules

@@ -1,0 +1,119 @@
+.oee-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #f9fbfc;
+    border-radius: 12px;
+    box-shadow: 0 0 18px rgba(0, 0, 0, 0.06);
+    font-family: 'Inter', sans-serif;
+    color: #2c3e50;
+    background-color: #f4f4f4;
+  }
+  
+  .oee-container h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+    color: #1e293b;
+  }
+  
+  .oee-section {
+    margin-bottom: 2rem;
+  }
+  
+  .oee-time-selectors {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+  
+  .oee-time-selectors div {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .oee-days {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  
+  .day-checkbox {
+    background: #e2e8f0;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  
+  .day-checkbox input {
+    display: none;
+  }
+  
+  .day-checkbox.active {
+    background-color: #2563eb;
+    color: white;
+  }
+  
+  .oee-inputs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .oee-inputs-grid label {
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+  }
+  
+  select,
+  input[type="number"],
+  input[type="time"] {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+  }
+  
+  .schedule-list {
+    list-style-type: disc;
+    margin-top: 1rem;
+    padding-left: 1.2rem;
+    color: #4b5563;
+  }
+  
+  .btn {
+    padding: 0.7rem 1.4rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .btn.primary {
+    background-color: #2563eb;
+    color: white;
+    margin-top: 1.5rem;
+    display: block;
+    width: 100%;
+  }
+  
+  .btn.primary:hover {
+    background-color: #1e40af;
+  }
+  
+  .btn.secondary {
+    background-color: #e5e7eb;
+    color: #111827;
+    margin-top: 1rem;
+  }
+  
+  .btn.secondary:hover {
+    background-color: #d1d5db;
+  }
+  

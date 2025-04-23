@@ -1,0 +1,49 @@
+# Volumes persistentes
+volumes:
+  postgres_data_backend: # Volumes para armazenamento persistente do banco de dados PostgreSQL
+
+services:
+  db_backend:
+      image: postgres:16
+      container_name: postgres-db-backend
+      restart: always
+      environment:
+        POSTGRES_USER: ${POSTGRES_BACKEND_USER}  # Usuário configurado no arquivo .env
+        POSTGRES_PASSWORD: ${POSTGRES_BACKEND_PASSWORD}
+        POSTGRES_DB: ${POSTGRES_BACKEND_DB}
+        TZ: 'GMT-3'  # TimeZone
+      volumes:
+        - postgres_data_backend:/var/lib/postgresql/data
+        #- ./init_guest_db.sql:/docker-entrypoint-initdb.d/init.sql  # Arquivo que cria as tabelas junto do banco de dados, caso necessário
+      ports:
+        - "${POSTGRES_BACKEND_PORT}:${POSTGRES_BACKEND_PORT}"
+      #healthcheck:
+      #  test: ["CMD", "pg_isready", "-U", "${POSTGRES_GUEST_USER}"]
+      #  interval: 30s
+      #  timeout: 10s
+      #  retries: 5
+      command: -p ${POSTGRES_BACKEND_PORT} # expoe a porta diferente da padrão do postgree
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - C:/sqlite3:/data
+    privileged: true  # Permitindo que o container acesse recursos privilegiados como a câmera
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_BACKEND_USER}:${POSTGRES_BACKEND_PASSWORD}@db_backend:${POSTGRES_BACKEND_PORT}/${POSTGRES_BACKEND_DB}
+      - TZ=America/Sao_Paulo # Timezone
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    environment:
+      - VITE_OEE_STOP_REASONS=Manutenção,Troca de Ferramentas,Configuração,Outros
+    depends_on:
+      - backend

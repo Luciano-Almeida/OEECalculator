@@ -1,0 +1,35 @@
+
+  /* Estilo dos botões */
+.menuParadas button {
+    background-color: #007BFF;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 15px 30px;
+    margin: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    width: 250px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Efeito de hover */
+    .menuParadas button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05); /* Aumenta um pouco o botão ao passar o mouse */
+  }
+  
+  /* Efeito de foco */
+  .menuParadas button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5); /* Destaca o botão com sombra azul ao focar */
+  }
+  
+  /* Estilo dos botões ativos (quando clicado) */
+  .menuParadas button:active {
+    background-color: #004085;
+    transform: scale(0.98); /* Dá um efeito de pressão no botão */
+  }
+  
