@@ -4,10 +4,10 @@ import ShiftForm from './ShiftForm';
 import ShiftList from './ShiftList';
 
 const cameraOptions = [
-  { id: 1, name: 'Câmera IP' },
-  { id: 2, name: 'Webcam USB' },
-  { id: 3, name: 'Câmera Industrial' },
-  { id: 4, name: 'Câmera Virtual' },
+  { id: 1, name: 'Câmera 1' },
+  { id: 2, name: 'Câmera 2' },
+  { id: 3, name: 'Câmera 3' },
+  { id: 4, name: 'Câmera 4' },
 ];
 
 const TesteOEESetup = () => {
@@ -40,27 +40,32 @@ const TesteOEESetup = () => {
 
   const handleAddOrUpdateShift = () => {
     if (!shiftName || !startTime || !endTime || selectedDays.length === 0) return;
-
+  
+    const orderedDaysOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+  
     const newShift = {
       name: shiftName,
       startTime,
       endTime,
-      days: selectedDays,
+      days: [...selectedDays].sort(
+        (a, b) => orderedDaysOfWeek.indexOf(a) - orderedDaysOfWeek.indexOf(b)
+      ),
       tempId: editingId || Date.now(),
     };
-
+  
     if (editingId) {
       setShifts(shifts.map((s) => (s.tempId === editingId ? newShift : s)));
       setEditingId(null);
     } else {
       setShifts([...shifts, newShift]);
     }
-
+  
     setShiftName('');
     setStartTime('');
     setEndTime('');
     setSelectedDays([]);
   };
+  
 
   const handleEditShift = (shift) => {
     setShiftName(shift.name);
@@ -112,15 +117,13 @@ const TesteOEESetup = () => {
   const handleSubmit = async () => {
     const payload = {
       user: 'operador1', // ou outro usuário, caso tenha login
-      start_shift: `${startTime}:00`, // apenas HH:MM:SS
-      stop_shift: `${endTime}:00`,
       stop_time: Number(machineStopTime),
       digest_time: Number(dataSummaryInterval),
       line_speed: Number(cycleTime),
       camera_name_id: cameraId,
       shifts: shifts.map(({ tempId, ...shift }) => shift), // removendo tempId
     };
-  
+    console.log("payload", payload)
     try {
       if (setupId) {
         const res = await fetch(`http://localhost:8000/update-oee-setup/${setupId}`, {

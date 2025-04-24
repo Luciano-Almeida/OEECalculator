@@ -43,8 +43,6 @@ async def init_db():
             else:
                 # Insere o setup OEE inicial
                 user = "instalação"
-                start_shift = datetime.strptime("08:00", "%H:%M")  # Hora de início: 08:00 AM
-                stop_shift = datetime.strptime("17:00", "%H:%M")  # Hora de término: 05:00 PM
                 stop_time = 60.0  # 60 segundos
                 line_speed = 120  # 120 unidades por minuto
                 digest_time = 60.0 # 60 segundos entre cada resumo 
@@ -53,12 +51,26 @@ async def init_db():
                 oee_setup = await crud.create_oee_setup(
                     db=db, 
                     user=user, 
-                    start_shift=start_shift, 
-                    stop_shift=stop_shift,
                     stop_time=stop_time, 
                     line_speed=line_speed, 
                     digest_time=digest_time,
-                    camera_name_id=camera_name_id
+                    camera_name_id=camera_name_id,
+                    shifts=[
+                        {
+                        #"shift_id": 1,
+                        "name": "Manhã",
+                        "days": ["Segunda", "Terça"],
+                        "startTime": "07:00",
+                        "endTime": "08:00"
+                        },
+                        {
+                        #"shift_id": 2,
+                        "name": "Noite",
+                        "days": ["Segunda", "Terça"],
+                        "startTime": "18:00",
+                        "endTime": "19:00"
+                        }
+                    ]
                 )
                 print("✅ Dados iniciais inseridos na tabela setupOEE!")
 

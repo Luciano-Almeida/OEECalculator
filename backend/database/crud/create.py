@@ -23,13 +23,11 @@ async def create_record(db: AsyncSession, record):
 # 📌 Funções para criar registros em cada tabela
 
 async def create_oee_setup(
-    db: AsyncSession, user: str, start_shift, stop_shift, stop_time: float, 
+    db: AsyncSession, user: str, stop_time: float, 
     line_speed: float, digest_time: float, camera_name_id: int, shifts: Optional[List[Dict]] = None
 ) -> OEESetup:
     new_oee = OEESetup(
         user=user, 
-        start_shift=start_shift, 
-        stop_shift=stop_shift,
         stop_time=stop_time, 
         line_speed=line_speed, 
         digest_time=digest_time,
@@ -37,16 +35,6 @@ async def create_oee_setup(
         shifts=shifts
     )
     return await create_record(db, new_oee)
-
-'''async def create_data_received(
-    db: AsyncSession, ok_nok: int, dados: str, lote_id: int, camera_name_id: int, timestamp
-) -> DataReceived:
-    new_data = DataReceived(
-        OK_NOK=ok_nok, Dados=dados, Lote_Id=lote_id, 
-        cameraName_Id=camera_name_id, Timestamp=timestamp
-    )
-    return await create_record(db, new_data)
-'''
 
 async def create_digest_data(
     db: AsyncSession, ok: int, nok: int, lote_id: int, camera_name_id: int,

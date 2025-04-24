@@ -56,8 +56,6 @@ async def create_oee_setup_route(
     """ Exemplo de dados 
         {
         "user": "operador1",
-        "start_shift": "07:00",
-        "stop_shift": "15:00",
         "stop_time": 1.5,
         "digest_time": 2.0,
         "line_speed": 120.0,
@@ -82,22 +80,9 @@ async def create_oee_setup_route(
 
     """
     try:
-        # Converte start_time e stop_time de string para time
-        print('request.start_shift', request.start_shift)
-        print('request.stop_shift', request.stop_shift)
-        start_time = time.fromisoformat(request.start_shift)
-        stop_time = time.fromisoformat(request.stop_shift)
-        today = date.today()
-        start_shift = datetime.combine(today, start_time)
-        stop_shift = datetime.combine(today, stop_time)
-        print('start_shift', start_shift)
-        print('stop_shift', stop_shift)
-
         oee = await crud.create_oee_setup(
             db=db,
             user=request.user,
-            start_shift=start_shift,
-            stop_shift=stop_shift,
             stop_time=request.stop_time,
             line_speed=request.line_speed,
             digest_time=request.digest_time,
@@ -118,21 +103,13 @@ async def delete_oee_setup_route(id: int, db: AsyncSession = Depends(get_db)):
 
 
 # 📌 UPDATE
-@router.put("/update-oee-setup/{setup_id}")#, response_model=schemas.OEESetupSchema)
+@router.put("/update-oee-setup/{setup_id}", response_model=dict)
 async def update_oee_setup_route(setup_id: int, data: schemas.CREATEOEESetupSchema, db: AsyncSession = Depends(get_db)):
+    print('setup_id', setup_id)
     print('data', data)
     try:
-        # Converte os tempos de string para datetime, se necessário
-        today = date.today()
-        start_time = time.fromisoformat(data.start_shift)
-        stop_time = time.fromisoformat(data.stop_shift)
-        start_shift = datetime.combine(today, start_time)
-        stop_shift = datetime.combine(today, stop_time)
-
         updated_data = {
             "user": data.user,
-            "start_shift": start_shift,
-            "stop_shift": stop_shift,
             "stop_time": data.stop_time,
             "digest_time": data.digest_time,
             "line_speed": data.line_speed,
@@ -143,6 +120,7 @@ async def update_oee_setup_route(setup_id: int, data: schemas.CREATEOEESetupSche
         updated = await crud.update_oee_setup(db, record_id=setup_id, data=updated_data)
         if not updated:
             raise HTTPException(status_code=404, detail="OEESetup not found")
+        print('updated', updated)
         return updated
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

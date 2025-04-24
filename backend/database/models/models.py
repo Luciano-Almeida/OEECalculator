@@ -11,8 +11,6 @@ class OEESetup(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user: Mapped[str] = mapped_column(String, nullable=False)
-    start_shift: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
-    stop_shift: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     stop_time: Mapped[float] = mapped_column(Float, nullable=False)
     digest_time: Mapped[float] = mapped_column(Float, nullable=False)
     line_speed: Mapped[float] = mapped_column(Float, nullable=False)

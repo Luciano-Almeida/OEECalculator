@@ -5,7 +5,7 @@ from typing import List, Optional
 
 # 📌 OEESetup
 class Shift(BaseModel):
-    id: str
+    #shift_id: Optional[int] = None
     name: str
     days: List[str]
     startTime: str
@@ -13,8 +13,6 @@ class Shift(BaseModel):
 
 class CREATEOEESetupSchema(BaseModel):
     user: str
-    #start_shift: str  # No formato "HH:MM:SS"
-    #stop_shift: str  # No formato "HH:MM:SS"
     stop_time: float
     digest_time: float
     line_speed: float
@@ -28,8 +26,6 @@ class CREATEOEESetupSchema(BaseModel):
 class OEESetupSchema(BaseModel):
     id: int
     user: str
-    start_shift: datetime
-    stop_shift: datetime
     stop_time: float
     digest_time: float
     line_speed: float
