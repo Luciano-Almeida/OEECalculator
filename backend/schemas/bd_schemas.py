@@ -20,8 +20,8 @@ class CREATEOEESetupSchema(BaseModel):
     shifts: Optional[List[Shift]] = None
 
     class Config:
-        orm_mode = True
-
+        #orm_mode = True
+        from_attributes = True
 
 class OEESetupSchema(BaseModel):
     id: int
@@ -34,7 +34,8 @@ class OEESetupSchema(BaseModel):
     shifts: Optional[List[Shift]] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+        #orm_mode = True
 
 
 # 📌 DataReceived
@@ -47,7 +48,8 @@ class DataReceivedSchema(BaseModel):
     timestamp: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+        #orm_mode = True
 
 
 # 📌 DigestData
@@ -61,7 +63,8 @@ class DigestDataSchema(BaseModel):
     stop_digest: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+        #orm_mode = True
 
 
 # 📌 PlannedDowntimeSetup
@@ -73,7 +76,8 @@ class CREATEPlannedDowntimeSetup(BaseModel):
     camera_name_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+        #orm_mode = True
 
 ''' Modelo de saída (response) '''
 class PlannedDowntimeSetupSchema(BaseModel):
@@ -84,7 +88,8 @@ class PlannedDowntimeSetupSchema(BaseModel):
     camera_name_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+        #orm_mode = True
 
 
 # 📌 UnplannedDowntimeSetup
@@ -93,7 +98,8 @@ class CREATEUnplannedDowntimeSetupSchema(BaseModel):
     name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+        #orm_mode = True
 
 ''' Modelo de saída (response) '''
 class UnplannedDowntimeSetupSchema(BaseModel):
@@ -101,7 +107,8 @@ class UnplannedDowntimeSetupSchema(BaseModel):
     name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+        #orm_mode = True
 
 
 # 📌 Paradas
@@ -112,7 +119,8 @@ class ParadaSchema(BaseModel):
     camera_name_id: Optional[int]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+        #orm_mode = True
 
 
 # 📌 PlannedDowntime
@@ -125,7 +133,8 @@ class PlannedDowntimeSchema(BaseModel):
     #timestamp: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+        #orm_mode = True
 
 
 # 📌 UnplannedDowntime
@@ -146,12 +155,16 @@ class UnplannedDowntimeSchema(BaseModel):
     #timestamp: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+        #orm_mode = True
 
 
 # 📌 AutoOEE
 class AutoOEESchema(BaseModel):
     id: int
+    init: datetime
+    end: datetime
+    camera_name_id: Optional[int]
     availability: float
     performance: float
     quality: float
@@ -161,4 +174,5 @@ class AutoOEESchema(BaseModel):
     timestamp: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+        #orm_mode = True

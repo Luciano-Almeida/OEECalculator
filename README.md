@@ -19,3 +19,28 @@ para criar a nova célula sem precisar apagar tudo
 ALTER TABLE oee_setup
 ADD COLUMN shifts JSONB;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+GIT Tipos de Commit
+feat	    Adição de nova funcionalidade
+fix	        Correção de bug
+chore	    Tarefas menores ou de manutenção (ex: ajustes de build, configs, dependências)
+docs	    Alterações na documentação
+style	    Mudanças de formatação, indentação, espaços, sem afetar código
+refactor	Refatorações de código (sem alterar comportamento nem corrigir bugs)
+test	    Adição ou modificação de testes
+perf	    Melhorias de performance
+build	    Mudanças em arquivos de build ou dependências externas (ex: webpack, npm)
+ci	        Mudanças em arquivos de integração contínua (ex: GitHub Actions, Travis)
+revert	    Reversão de um commit anterior

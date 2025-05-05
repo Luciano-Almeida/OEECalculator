@@ -3,7 +3,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
-from services import paradas_digest
 from database.db import get_db
 import database.crud as crud
 import schemas as schemas

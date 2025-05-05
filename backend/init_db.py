@@ -60,19 +60,26 @@ async def init_db():
                         #"shift_id": 1,
                         "name": "Manhã",
                         "days": ["Segunda", "Terça"],
-                        "startTime": "07:00",
-                        "endTime": "08:00"
+                        "startTime": "08:00",
+                        "endTime": "14:00"
                         },
                         {
                         #"shift_id": 2,
                         "name": "Noite",
                         "days": ["Segunda", "Terça"],
-                        "startTime": "18:00",
+                        "startTime": "14:00",
                         "endTime": "19:00"
                         }
                     ]
                 )
                 print("✅ Dados iniciais inseridos na tabela setupOEE!")
+
+                # Insere um DigestData Inicial
+                
+
+                # Insere uma parada inicial
+
+                # Insere um AutoOEE inicial
 
         except SQLAlchemyError as e:
             await db.rollback()  # Reverte alterações no caso de erro

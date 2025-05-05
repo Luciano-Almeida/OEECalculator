@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
-from services import paradas_digest
+from services import servico_data_received
 from database.db import get_db
 import database.crud as crud
 import schemas as schemas
@@ -13,7 +13,7 @@ from database.crud import create_parada
 router = APIRouter()
 
 # 📌 GET
-@router.get("/digest/", response_model=List[str])
+@router.get("/digest/", response_model=List[schemas.DigestDataSchema])
 async def get_digest(db: AsyncSession = Depends(get_db)):
     """
     Retorna uma lista com todas os dados
@@ -30,7 +30,7 @@ async def create_digest_endpoint(db: AsyncSession = Depends(get_db)):
     #print("setup_oee", setup_oee)
     camera_name_id = 1 # setup_oee["camera_name_id"]
     digest_time = 60 # setup_oee["digest_time"]
-    resultados = paradas_digest.fetch_digest_data(camera_name_id, digest_time)
+    resultados = servico_data_received.fetch_digest_data_from_datareceived(camera_name_id, digest_time)
 
     for row in resultados:
         # Extrair valores de cada linha de resultado

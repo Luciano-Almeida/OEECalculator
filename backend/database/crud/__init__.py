@@ -31,7 +31,6 @@ from .read import (
     get_all_auto_oee,
 
     get_oee_setup_by_id,
-    get_oee_setup_by_camera_name_id,
     get_digest_data_by_id,
     get_planned_downtime_setup_by_id,
     get_unplanned_downtime_setup_by_id,
@@ -40,6 +39,15 @@ from .read import (
     get_unplanned_downtime_by_id,
     get_auto_oee_by_id,
 
+    get_digest_data_by_camera_name_id,
+    get_oee_setup_by_camera_name_id,
+    get_planned_downtime_setup_by_camera_name_id,
+    get_last_digest_data_by_camera,
+    get_last_parada_by_camera,
+    get_last_auto_oee_by_camera,
+
+
+    get_digest_data_filtered_by_stop_and_cameraId,
     get_total_planned_downtime_seconds,
     get_total_unplanned_downtime_seconds,
     get_total_ok_nok_from_digest,

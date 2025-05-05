@@ -97,6 +97,10 @@ class AutoOEE(Base):
     __tablename__ = "auto_oee"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    init: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
+    end: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
+    #camera_name_id: Mapped[int] = mapped_column(ForeignKey("camera_name.id", ondelete="CASCADE"), nullable=False)
+    camera_name_id: Mapped[int] = mapped_column(Integer, nullable=True)
     availability: Mapped[float] = mapped_column(Float, nullable=False)
     performance: Mapped[float] = mapped_column(Float, nullable=False)
     quality: Mapped[float] = mapped_column(Float, nullable=False)

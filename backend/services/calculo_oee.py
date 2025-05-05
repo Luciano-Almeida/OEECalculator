@@ -1,37 +1,22 @@
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Dict, List
+from typing import Dict
 
-from services import paradas_digest
 from database.db import get_db
 import database.crud as crud
 from utils import timedelta_to_iso
 
-from database.crud import create_parada
 
-# Importando as classes do SQLAlchemy
-from database.models import OEESetup, PlannedDowntime, UnplannedDowntime, Paradas, AutoOEE, PlannedDowntimeSetup
-
-router = APIRouter()
- 
-@router.get("/oee/", response_model=Dict)
-async def get_oee(inicio: datetime, fim: datetime, camera_name_id: int, db: AsyncSession = Depends(get_db)):
+async def oee_by_period(inicio: datetime, 
+                        fim: datetime, 
+                        camera_name_id: int, 
+                        velocidade_da_linha: float, 
+                        db: AsyncSession = Depends(get_db)
+                        ) -> Dict:
     """
     Retorna uma lista com todas os dados do OEE
-    """
-    # Consultar os dados necessários para o cálculo
-    # 1. Dados de setup e produção da câmera
-    #oee_setup = db.query(OEESetup).filter(OEESetup.camera_name_id == camera_name_id, 
-    #                                      OEESetup.start_shift >= inicio,
-    #                                      OEESetup.stop_shift <= fim).all()
-    oee_setup = await crud.get_oee_setup_by_camera_name_id(db=db, camera_name_id=camera_name_id)
-    #formatted_start_shift = f"'{OEESetup['start_shift'].strftime('%Y-%m-%d %H:%M:%S')}'"
-    #formatted_stop_shift = f"'{OEESetup['stop_shift'].strftime('%Y-%m-%d %H:%M:%S')}'"
-
-    #if not oee_setup or oee_setup.start_shift > fim or oee_setup.stop_shift < inicio:
-    #    raise HTTPException(status_code=404, detail="No OEE setup found for the given camera and time range.")
-
+    """   
     # B. Tempo de produção (Total de Tempo Disponível)
     total_available_time = fim - inicio
 
@@ -57,18 +42,11 @@ async def get_oee(inicio: datetime, fim: datetime, camera_name_id: int, db: Asyn
     #print('availability_ratio', availability_ratio)
 
     # H. Número total de peças produzidas (boas e ruins)
-    #total_produced_pieces = db.query(DataReceived).filter(
-    #    DataReceived.camera_name_id == camera_name_id,
-    #    DataReceived.timestamp >= inicio,
-    #    DataReceived.timestamp <= fim
-    #).count()
-    #total_produced_pieces = 1000
     production = await crud.get_total_ok_nok_from_digest(db=db, inicio=inicio, fim=fim, camera_name_id=camera_name_id)
     total_produced_pieces = production["total_ok"] + production["total_nok"]
 
     # I. Tempo ideal de ciclo (valor em pç/min)
-    #ideal_cycle_time = oee_setup["line_speed"]
-    ideal_cycle_time = oee_setup.line_speed
+    ideal_cycle_time = velocidade_da_linha
 
     # J. Número máximo de peças que podem ser produzidas (Tempo operando * Tempo ideal de ciclo) (I x F)
     max_pieces = (operating_time.total_seconds() / 60) * ideal_cycle_time
@@ -77,22 +55,14 @@ async def get_oee(inicio: datetime, fim: datetime, camera_name_id: int, db: Asyn
     performance_ratio = total_produced_pieces / max_pieces if max_pieces > 0 else 0
 
     # L. Total de peças defeituosas
-    #total_defective_pieces = 0
     total_defective_pieces = production["total_nok"]
 
     # M. Relação de qualidade (Qualidade = (Peças boas - Defeituosas) / Peças boas) (H - L / H)
     quality_ratio = (total_produced_pieces - total_defective_pieces) / total_produced_pieces if total_produced_pieces > 0 else 0
-    print('quality_ratio', quality_ratio)
+    #print('quality_ratio', quality_ratio)
 
     # OEE
     oee = availability_ratio * performance_ratio * quality_ratio
-
-    discretizado = await crud.get_total_ok_nok_discretized_by_period(db=db, 
-                                                                     inicio=inicio, 
-                                                                     fim=fim, 
-                                                                     camera_name_id=camera_name_id,
-                                                                     period=timedelta(minutes=1)
-                                                                     )
 
 
     # Retornando os resultados no formato JSON
@@ -114,7 +84,5 @@ async def get_oee(inicio: datetime, fim: datetime, camera_name_id: int, db: Asyn
         "L_Total_pecas_defeituosas": total_defective_pieces,
         "M_Relacao_qualidade(H-(L/H))": round(quality_ratio * 100, 2),
 
-        "oee(GxKxM)": round(oee * 100, 2),
-
-        "discretizado": discretizado
+        "oee(GxKxM)": round(oee * 100, 2)
     }

@@ -4,7 +4,6 @@ from pydantic import BaseModel, validator
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, List, Optional
 
-from services import paradas_digest
 from database.db import get_db
 import database.crud as crud
 from utils import timedelta_to_iso

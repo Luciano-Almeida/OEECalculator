@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import json
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from typing import Dict, List, Optional
@@ -59,15 +59,14 @@ async def fetch_all_rows(db: AsyncSession, stmt):
     }) for oee_setup in result]
 '''
 async def get_all_oee_setups(db: AsyncSession) -> List[OEESetup]:
-    stmt = select(OEESetup)  # Seleciona todos os registros da tabela OEESetup
+    stmt = select(OEESetup).order_by(OEESetup.id)  # Seleciona todos os registros da tabela OEESetup
     return await fetch_all(db, stmt)  # Usa a função genérica para buscar todos
 
-
-async def get_all_digest_data(db: AsyncSession) -> List[str]:
-    stmt = select(DigestData)
+async def get_all_digest_data(db: AsyncSession) -> List[DigestData]: #List[str]:
+    stmt = select(DigestData).order_by(DigestData.id)
     result = await fetch_all(db, stmt)
-
-    return [json.dumps({
+    return result # retorna lista de objetos ORM diretamente
+    '''return [json.dumps({
         "id": row.id,
         "ok": row.ok,
         "nok": row.nok,
@@ -76,10 +75,10 @@ async def get_all_digest_data(db: AsyncSession) -> List[str]:
         "start_digest": row.start_digest.isoformat() if row.start_digest else None,      # Convert to string,
         "stop_digest": row.stop_digest.isoformat() if row.stop_digest else None,      # Convert to string,
         #"timestamp": row.timestamp.isoformat() if row.timestamp else None,      # Convert to string        
-    }) for row in result]
+    }) for row in result]'''
 
 async def get_all_planned_downtime_setups(db: AsyncSession) -> List[PlannedDowntimeSetup]:
-    stmt = select(PlannedDowntimeSetup)
+    stmt = select(PlannedDowntimeSetup).order_by(PlannedDowntimeSetup.id)
     result = await fetch_all(db, stmt)
     return result # retorna lista de objetos ORM diretamente
     '''return [json.dumps({
@@ -91,7 +90,7 @@ async def get_all_planned_downtime_setups(db: AsyncSession) -> List[PlannedDownt
     }) for planned_downtime_setup in result]'''
 
 async def get_all_unplanned_downtime_setups(db: AsyncSession) -> List[UnplannedDowntimeSetup]:
-    stmt = select(UnplannedDowntimeSetup)
+    stmt = select(UnplannedDowntimeSetup).order_by(UnplannedDowntimeSetup.id)
     result = await fetch_all(db, stmt)
     return result
     '''return [json.dumps({
@@ -100,52 +99,26 @@ async def get_all_unplanned_downtime_setups(db: AsyncSession) -> List[UnplannedD
     }) for unplanned_downtime_setup in result]'''
 
 async def get_all_paradas(db: AsyncSession) -> List[Paradas]:
-    stmt = select(Paradas)
+    stmt = select(Paradas).order_by(Paradas.id)
     result = await fetch_all(db, stmt)
     return result  # retorna lista de objetos ORM diretamente
 
 async def get_all_planned_downtime(db: AsyncSession) -> List[PlannedDowntime]:
-    stmt = select(PlannedDowntime)
+    stmt = select(PlannedDowntime).order_by(PlannedDowntime.id)
     return await fetch_all(db, stmt)
 
 async def get_all_unplanned_downtime(db: AsyncSession) -> List[UnplannedDowntime]:
-    stmt = select(UnplannedDowntime)
+    stmt = select(UnplannedDowntime).order_by(UnplannedDowntime.id)
     return await fetch_all(db, stmt)
 
 async def get_all_auto_oee(db: AsyncSession) -> List[AutoOEE]:
-    stmt = select(AutoOEE)
+    stmt = select(AutoOEE).order_by(AutoOEE.id)
     return await fetch_all(db, stmt)
 
 # 📌 Funções para buscar um único registro por ID
 async def get_oee_setup_by_id(db: AsyncSession, oee_id: int) -> Optional[OEESetup]:
     stmt = select(OEESetup).where(OEESetup.id == oee_id)
     return await fetch_one(db, stmt)
-
-async def get_oee_setup_by_camera_name_id(db: AsyncSession, camera_name_id: int) -> Optional[OEESetup]:
-    stmt = select(OEESetup).where(OEESetup.camera_name_id == camera_name_id)
-    return await fetch_one(db, stmt)
-    '''result = await fetch_all(db, stmt)
-
-    # Caso não haja resultados, retornamos uma resposta vazia
-    if result is None:
-        return {"message": "Nenhum resultado encontrado"}
-    
-    result = result[0]  
-    
-    # Caso haja, retornamos os dados no formato JSON
-    oee_setup_dict = {
-        "id": result.id,
-        "user": result.user,
-        "start_shift": result.start_shift.isoformat() if result.start_shift else None,
-        "stop_shift": result.stop_shift.isoformat() if result.stop_shift else None,
-        "stop_time": result.stop_time,
-        "line_speed": result.line_speed,  # (valor em pç/min)
-        "digest_time": result.digest_time,
-        "camera_name_id": result.camera_name_id,
-        "timestamp": result.timestamp.isoformat() if result.timestamp else None,
-    }
-
-    return oee_setup_dict'''
 
 async def get_digest_data_by_id(db: AsyncSession, digest_id: int) -> Optional[DigestData]:
     stmt = select(DigestData).where(DigestData.id == digest_id)
@@ -176,6 +149,70 @@ async def get_auto_oee_by_id(db: AsyncSession, oee_id: int) -> Optional[AutoOEE]
     return await fetch_one(db, stmt)
 
 
+# 📌 Funções para buscar registros por CAMERA_NAME_ID
+async def get_digest_data_by_camera_name_id(db: AsyncSession, camera_name_id: int) -> List[DigestData]:
+    stmt = select(DigestData).where(DigestData.camera_name_id == camera_name_id).order_by(DigestData.id)
+    return await fetch_all(db, stmt)
+
+async def get_oee_setup_by_camera_name_id(db: AsyncSession, camera_name_id: int) -> Optional[OEESetup]:
+    stmt = select(OEESetup).where(OEESetup.camera_name_id == camera_name_id)
+    return await fetch_one(db, stmt)
+    '''result = await fetch_all(db, stmt)
+
+    # Caso não haja resultados, retornamos uma resposta vazia
+    if result is None:
+        return {"message": "Nenhum resultado encontrado"}
+    
+    result = result[0]  
+    
+    # Caso haja, retornamos os dados no formato JSON
+    oee_setup_dict = {
+        "id": result.id,
+        "user": result.user,
+        "start_shift": result.start_shift.isoformat() if result.start_shift else None,
+        "stop_shift": result.stop_shift.isoformat() if result.stop_shift else None,
+        "stop_time": result.stop_time,
+        "line_speed": result.line_speed,  # (valor em pç/min)
+        "digest_time": result.digest_time,
+        "camera_name_id": result.camera_name_id,
+        "timestamp": result.timestamp.isoformat() if result.timestamp else None,
+    }
+
+    return oee_setup_dict'''
+
+async def get_planned_downtime_setup_by_camera_name_id(db: AsyncSession, camera_name_id: int) -> Optional[PlannedDowntimeSetup]:
+    stmt = select(PlannedDowntimeSetup).where(PlannedDowntimeSetup.camera_name_id == camera_name_id)
+    return await fetch_all(db, stmt)
+
+async def get_last_digest_data_by_camera(db: AsyncSession, camera_name_id: int) -> Optional[DigestData]:
+    # Último DigestData para uma câmera específica
+    stmt = (
+        select(DigestData)
+        .where(DigestData.camera_name_id == camera_name_id)
+        .order_by(desc(DigestData.stop_digest))  # Assumindo que o mais recente é pelo fim da digestão
+        .limit(1)
+    )
+    return await fetch_one(db, stmt)
+
+async def get_last_parada_by_camera(db: AsyncSession, camera_name_id: int) -> Optional[Paradas]:
+    # Última Parada para uma câmera específica
+    stmt = (
+        select(Paradas)
+        .where(Paradas.camera_name_id == camera_name_id)
+        .order_by(desc(Paradas.stop))  # Parada mais recente pelo tempo de parada final
+        .limit(1)
+    )
+    return await fetch_one(db, stmt)
+
+async def get_last_auto_oee_by_camera(db: AsyncSession, camera_name_id: int) -> Optional[AutoOEE]:
+    # Último AutoOEE para uma câmera específica
+    stmt = (
+        select(AutoOEE)
+        .where(AutoOEE.camera_name_id == camera_name_id)
+        .order_by(desc(AutoOEE.end))  # Registro mais recente pelo end (final do periodo de análise)
+        .limit(1)
+    )
+    return await fetch_one(db, stmt)
 
 
 # 📌 Funções especiais
@@ -316,6 +353,13 @@ async def get_total_ok_nok_discretized_by_period(
     
     return results
 
+
+async def get_digest_data_filtered_by_stop_and_cameraId(db: AsyncSession, fim: datetime, camera_name_id: int) -> List[DigestData]:
+    stmt = select(DigestData).where(
+        DigestData.stop_digest >= fim,
+        DigestData.camera_name_id == camera_name_id
+        ).order_by(DigestData.id)
+    return await fetch_all(db, stmt)
 
 
 async def get_planned_downtime_filtered_by_init_end_cameraId(

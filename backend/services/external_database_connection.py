@@ -5,7 +5,7 @@ import os
 class ExternalDatabaseConnection:
     def __init__(self):
         # Configurações de conexão
-        self.db_host = os.getenv('DB_HOST', '172.30.224.1')
+        self.db_host = os.getenv('DB_HOST', '172.19.112.1')
         self.db_port = os.getenv('DB_PORT', '5432')
         self.db_name = os.getenv('DB_NAME', 'query')
         self.db_user = os.getenv('DB_USER', 'postgres')

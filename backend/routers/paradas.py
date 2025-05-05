@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
-from services import paradas_digest
+from services import servico_data_received
 from database.db import get_db
 import database.crud as crud
 import schemas as schemas
@@ -15,7 +15,7 @@ router = APIRouter()
 # 📌 Criando todas as Paradas
 @router.post("/criando_todas_paradas/")
 async def create_parada_endpoint(db: AsyncSession = Depends(get_db)):
-    resultado = paradas_digest.fetch_paradas()
+    resultado = servico_data_received.fetch_paradas()
     for row in resultado:
         # Extrair os dados da parada
         start_time = row[0]

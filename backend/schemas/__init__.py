@@ -11,6 +11,7 @@ from .bd_schemas import (
     UnplannedDowntimeSetupSchema,
     ParadaSchema,
     PlannedDowntimeSchema,
+    Shift,
     UnplannedDowntimeSchema,
     UnplannedDowntimeSchema,
     AutoOEESchema
