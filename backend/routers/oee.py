@@ -36,5 +36,5 @@ async def get_oee(inicio: datetime, fim: datetime, camera_name_id: int, db: Asyn
     )
 
     oee_data["discretizado"] = discretized_history
-
+    print(f"oerr_data", oee_data)
     return oee_data

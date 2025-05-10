@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from .auto_oee import router as auto_oee_router
 from .db_routes import router as db_routes_router
 from .db_routes_testes import router as db_routes_router_testes
 from .digest_data import router as digest_data_router
@@ -13,6 +14,7 @@ from .setup_oee import router as setup_oee_router
 api_router = APIRouter()
 
 # Incluir os routers individuais
+api_router.include_router(auto_oee_router, tags=["auto_oee_router"]) 
 api_router.include_router(db_routes_router_testes, tags=["db_routes_router_testes"]) 
 api_router.include_router(db_routes_router, tags=["db_routes_router"]) 
 api_router.include_router(digest_data_router, tags=["digest_data_router"]) 

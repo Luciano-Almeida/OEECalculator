@@ -19,6 +19,7 @@ const OEEDinamico = () => {
 
   // Fetching data from the backend
   useEffect(() => {
+    
     const fetchData = async () => {
       try {
         const response = await fetch('http://localhost:8000/oee/?inicio=2025-03-14T09:00:00&fim=2025-03-14T15:00:00&camera_name_id=1');

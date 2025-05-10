@@ -40,6 +40,11 @@ const ApontarParadas = () => {
   const [fim, setFim] = useState("2025-04-01 17:00:00");
   const [paradas, setParadas] = useState([]);
   const [paradasNaoPlanejadasTypes, setParadasNaoPlanejadasTypes] = useState([]);
+  const [paradasPlanejadasTypes, setParadasPlanejadasTypes] = useState([
+    {id: 1, name: 'Alongamento'},
+    {id: 1, name: 'Almoço'},
+    ]);
+
 
   const buscarParadas = async () => {
     const response = await axios.get("http://localhost:8000/paradas_com_tipos/", {

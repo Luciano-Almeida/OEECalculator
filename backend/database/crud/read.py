@@ -180,7 +180,7 @@ async def get_oee_setup_by_camera_name_id(db: AsyncSession, camera_name_id: int)
 
     return oee_setup_dict'''
 
-async def get_planned_downtime_setup_by_camera_name_id(db: AsyncSession, camera_name_id: int) -> Optional[PlannedDowntimeSetup]:
+async def get_planned_downtime_setup_by_camera_name_id(db: AsyncSession, camera_name_id: int) -> List[PlannedDowntimeSetup]:
     stmt = select(PlannedDowntimeSetup).where(PlannedDowntimeSetup.camera_name_id == camera_name_id)
     return await fetch_all(db, stmt)
 
@@ -214,6 +214,20 @@ async def get_last_auto_oee_by_camera(db: AsyncSession, camera_name_id: int) -> 
     )
     return await fetch_one(db, stmt)
 
+async def get_auto_oee_by_period_and_camera(db: AsyncSession, inicio_pesquisa: datetime, fim_pesquisa: datetime, camera_name_id: int) -> List[AutoOEE]:
+    try:
+        stmt = select(AutoOEE).filter(
+            AutoOEE.init >= inicio_pesquisa,
+            AutoOEE.end <= fim_pesquisa,
+            AutoOEE.camera_name_id == camera_name_id
+        ).order_by(AutoOEE.init)  # Ordena por data de início (opcional)
+
+        # Chama a função genérica para buscar os registros
+        return await fetch_all(db, stmt)
+
+    except Exception as e:
+        print(f"Erro ao buscar AutoOEE no período: {e}")
+        raise
 
 # 📌 Funções especiais
 async def get_total_planned_downtime_seconds(

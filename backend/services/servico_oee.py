@@ -27,7 +27,7 @@ def str_para_time(hora_str: str) -> time:
     return datetime.strptime(hora_str, '%H:%M').time()
 
 class ServicoOEE:
-    def __init__(self, intervalo: float = 10.0, db: AsyncSession = None):#, db: AsyncSession = Depends(get_db)):      
+    def __init__(self, intervalo: float = 60.0, db: AsyncSession = None):#, db: AsyncSession = Depends(get_db)):      
         self._running = False
         self._interval = intervalo  # segundos entre cada verificação
         self.db_session = db
@@ -71,7 +71,7 @@ class ServicoOEE:
             except Exception as e:
                 print(f"[camera_id:{camera_id}] Erro ao iniciar cache de dados: {e}")
         
-        await self.running()
+        #await self.running()
 
     async def running(self):
         try:

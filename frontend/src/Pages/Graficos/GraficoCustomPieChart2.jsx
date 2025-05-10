@@ -8,9 +8,11 @@ import {
 } from 'recharts';
 
 const GraficoCustomPieChart2 = ({ percentage, w, h, raioInterno, raioExterno }) => {
+    percentage = parseFloat(percentage.toFixed(2)) // duas casas decimais
+  
     const remainingPercentage = 100 - percentage;
     const chartData = [
-      { name: 'Valor', value: percentage },
+      { name: 'Valor', value:  percentage},
       { name: 'Restante', value: remainingPercentage }
     ];
   

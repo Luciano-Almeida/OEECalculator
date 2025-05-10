@@ -45,6 +45,7 @@ from .read import (
     get_last_digest_data_by_camera,
     get_last_parada_by_camera,
     get_last_auto_oee_by_camera,
+    get_auto_oee_by_period_and_camera,
 
 
     get_digest_data_filtered_by_stop_and_cameraId,

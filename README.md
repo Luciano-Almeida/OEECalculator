@@ -33,6 +33,7 @@ ADD COLUMN shifts JSONB;
 
 
 GIT Tipos de Commit
+Exemplo "feat(auth): adiciona JWT ao login"
 feat	    Adição de nova funcionalidade
 fix	        Correção de bug
 chore	    Tarefas menores ou de manutenção (ex: ajustes de build, configs, dependências)
