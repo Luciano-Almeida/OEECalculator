@@ -35,6 +35,4 @@ async def get_auto_oee(
         fim_pesquisa=fim,
         camera_name_id=camera_name_id
     )
-    # Convertendo os objetos AutoOEE em AutoOEESchema para garantir que a resposta tenha o formato correto
     return oees
-    #return [schemas.AutoOEESchema(oee) for oee in oees]

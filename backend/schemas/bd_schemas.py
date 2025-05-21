@@ -112,6 +112,17 @@ class UnplannedDowntimeSetupSchema(BaseModel):
 
 
 # 📌 Paradas
+class CreatePlannedDowntimeSchema(BaseModel):
+    user: str
+    planned_downtime_id: int
+    paradas_id: int
+    observacoes: Optional[str]
+    #timestamp: datetime
+
+    class Config:
+        from_attributes = True
+        #orm_mode = True
+
 class ParadaSchema(BaseModel):
     id: int
     start: datetime

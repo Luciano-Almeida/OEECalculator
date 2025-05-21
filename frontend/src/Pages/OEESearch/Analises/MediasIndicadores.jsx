@@ -11,7 +11,7 @@ const calcularMedia = (data, chave) => {
 const MediasIndicadores = ({ oeeData }) => {
   // Verificando se os dados estão carregados
   if (!oeeData || oeeData.length === 0) {
-    return <p>Carregando dados...</p>;
+    return <p>Definir dados de busca...</p>;
   }
 
   // Calculando as médias

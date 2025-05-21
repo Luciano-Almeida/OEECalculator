@@ -25,16 +25,6 @@ async def delete_digest_data_route(id: int, db: Session = Depends(get_db)):
 async def delete_parada_route(id: int, db: Session = Depends(get_db)):
     return delete_parada(db, id)
 
-# Rota para deletar o PlannedDowntime
-@router.delete("/delete_planned_downtime/{id}")
-async def delete_planned_downtime_route(id: int, db: Session = Depends(get_db)):
-    return delete_planned_downtime(db, id)
-
-# Rota para deletar o UnplannedDowntime
-@router.delete("/delete_unplanned_downtime/{id}")
-async def delete_unplanned_downtime_route(id: int, db: Session = Depends(get_db)):
-    return delete_unplanned_downtime(db, id)
-
 # Rota para deletar o AutoOEE
 @router.delete("/delete_auto_oee/{id}")
 async def delete_auto_oee_route(id: int, db: Session = Depends(get_db)):

@@ -8,21 +8,20 @@ const calcularTotal = (data, chave) => {
   return data.reduce((acc, item) => acc + item[chave], 0);
 };
 
-const GraficoBarrasHorizontal = ({ oeeData }) => {
+const CustomLabel = ({ x, y, width, height, value, total }) => {
+  const percent = ((value / total) * 100).toFixed(1);
+  return (
+    <text x={x + width + 5} y={y + (height /2) + 10} fill="#000" fontSize={22}>
+      {`${percent}%`}
+    </text>
+  );
+};
+
+const TotalProduzido = ({ oeeData }) => {
   // Verificar se há dados
   if (!oeeData || oeeData.length === 0) {
-    return <p>Carregando dados...</p>;
+    return <p></p>;
   }
-
-  // Preparar os dados para o gráfico
-  /*
-  const chartData = oeeData.map((item, index) => ({
-    turno: `Turno ${index + 1}`,
-    total_ok: item.total_ok,
-    total_nok: item.total_not_ok,
-    total: item.total_ok + item.total_not_ok,
-  }));
-  */
 
   // Calculando as médias
   const total_ok = calcularTotal(oeeData, 'total_ok');
@@ -36,8 +35,6 @@ const GraficoBarrasHorizontal = ({ oeeData }) => {
     },
   ];
   
-  console.log("chat", chartData)
-
 
   return (
     <div style={{ width: '100%', marginTop: '10px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '10px', boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)' }}>
@@ -52,8 +49,16 @@ const GraficoBarrasHorizontal = ({ oeeData }) => {
           <YAxis dataKey="turno" type="category" />
           <Tooltip />
           <Legend />
-          <Bar dataKey="Bons" fill="#4CAF50" />
-          <Bar dataKey="Ruins" fill="#F44336" />
+          <Bar 
+            dataKey="Bons" 
+            fill="#4CAF50" 
+            label={(props) => <CustomLabel {...props} total={total_ok + total_nok} />}
+          />
+          <Bar 
+            dataKey="Ruins" 
+            fill="#F44336" 
+            label={(props) => <CustomLabel {...props} total={total_ok + total_nok} />}
+          />
         </BarChart>
       </ResponsiveContainer>
       
@@ -61,4 +66,4 @@ const GraficoBarrasHorizontal = ({ oeeData }) => {
   );
 };
 
-export default GraficoBarrasHorizontal;
+export default TotalProduzido;

@@ -355,8 +355,6 @@ async def get_total_ok_nok_discretized_by_period(
         
         result = await db.execute(stmt)
         total_ok, total_nok = result.one_or_none() or (0, 0)
-
-        
         
         results.append({
             "start": start,
@@ -440,6 +438,7 @@ async def get_paradas_com_tipo(
                 "paradaID": parada.id,
                 "paradaSetupID": setup.id,
                 "paradaName": setup.name,
+                "plannedOrUnplannedID": planned_obj.id,
                 "obs": planned_obj.observacoes or label_sem_obs
             })
             continue
@@ -462,6 +461,7 @@ async def get_paradas_com_tipo(
                 "paradaID": parada.id,
                 "paradaSetupID": setup.id,
                 "paradaName": setup.name,
+                "plannedOrUnplannedID": unplanned_obj.id,
                 "obs": unplanned_obj.observacoes or label_sem_obs
             })
             continue
@@ -475,6 +475,7 @@ async def get_paradas_com_tipo(
             "paradaID": parada.id,
             "paradaSetupID": -1,
             "paradaName": "Não justificada",
+            "plannedOrUnplannedID": -1,
             "obs": label_sem_obs
         })
 

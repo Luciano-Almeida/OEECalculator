@@ -7,7 +7,7 @@ import moment from 'moment';
 const GraficoLinha = ({ oeeData }) => {
   // Verificar se há dados para exibir
   if (!oeeData || oeeData.length === 0) {
-    return <p>Carregando dados...</p>;
+    return <p></p>;
   }
 
   // Preparando os dados para o gráfico

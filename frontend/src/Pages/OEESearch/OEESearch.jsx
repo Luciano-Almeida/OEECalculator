@@ -10,7 +10,7 @@ import './OEESearch.css'
 import GraficoCustomPieChart2 from '../Graficos/GraficoCustomPieChart2';
 import MediasIndicadores from './Analises/MediasIndicadores';
 import GraficoLinha from './Analises/GraficoLinha';
-import GraficoBarrasHorizontal from './Analises/GraficoBarrasHorizontal';
+import TotalProduzido from './Analises/TotalProduzido';
 
 const { Option } = Select;
 
@@ -108,7 +108,7 @@ const OEESearch = () => {
         </div>
 
         {/* Total de produção no periodo  */}
-        <GraficoBarrasHorizontal oeeData={oeeData} />
+        <TotalProduzido oeeData={oeeData} />
 
         {/* Histórico  ao longo do tempo */}
         <GraficoLinha oeeData={oeeData} />

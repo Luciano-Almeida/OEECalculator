@@ -1,7 +1,7 @@
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import Any, Dict, List
 
 from services import servico_data_received
 from database.db import get_db
@@ -37,7 +37,7 @@ async def create_parada_endpoint(db: AsyncSession = Depends(get_db)):
 
 
 
-# 📌 GET
+# 📌 READ
 @router.get("/paradas/", response_model=List[schemas.ParadaSchema])#, response_model=List[str])
 async def get_paradas(db: AsyncSession = Depends(get_db)):
     """
@@ -68,9 +68,12 @@ async def filtrar_paradas(
     print(f"Realizando a pesquisa por camera {camera_name_id} - Inicio {inicio} - fim {fim}")
     return await crud.get_paradas_com_tipo(db, inicio, fim, camera_name_id)
 
+@router.get("/paradas_planejadas/", response_model=List[schemas.PlannedDowntimeSchema])#, response_model=List[str])
+async def get_paradas_planejadas(db: AsyncSession = Depends(get_db)):
+    return await crud.get_all_planned_downtime(db)
 
 
-# 📌 POST
+# 📌 CREATE
 @router.post("/create_parada_nao_planejada/", response_model=schemas.UnplannedDowntimeSchema)
 async def post_setup_paradas_nao_planejadas(data: schemas.CreateUnplannedDowntimeSchema, db: AsyncSession = Depends(get_db)):
     try:
@@ -87,9 +90,54 @@ async def post_setup_paradas_nao_planejadas(data: schemas.CreateUnplannedDowntim
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.post("/create_parada_planejada/", response_model=schemas.PlannedDowntimeSchema)
+async def post_setup_paradas_planejadas(data: schemas.CreatePlannedDowntimeSchema, db: AsyncSession = Depends(get_db)):
+    try:
+        print('Data create_parada_planejada', data)
+        # Criando o novo setup no banco de dados
+        new_setup = await crud.create_planned_downtime(
+            db=db,
+            user=data.user, 
+            planned_downtime_id=data.planned_downtime_id, 
+            paradas_id=data.paradas_id, 
+            observacoes=data.observacoes
+        )
+        return new_setup
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 
 # 📌 DELETE
+@router.delete("/delete_planned_downtime/{record_id}", response_model=Dict[str, Any])
+async def delete_planned_downtime_route(record_id: int, db: AsyncSession = Depends(get_db)):
+    return await crud.delete_planned_downtime(db, record_id)
+
+@router.delete("/delete_unplanned_downtime/{record_id}", response_model=Dict[str, Any])
+async def delete_unplanned_downtime_route(record_id: int, db: AsyncSession = Depends(get_db)):
+    return await crud.delete_unplanned_downtime(db, record_id)
 
 
 # 📌 UPDATE
+@router.put("/update_parada_nao_planejada/{record_id}", response_model=Dict[str, Any])
+async def update_setup_paradas_nao_planejadas(
+    record_id: int,
+    data: schemas.CreateUnplannedDowntimeSchema, 
+    db: AsyncSession = Depends(get_db)
+):
+    result = await crud.update_unplanned_downtime(db, record_id, data)
+    if result["status"] == "error":
+        raise HTTPException(status_code=400, detail=result["message"])
+    return result
+
+@router.put("/update_parada_planejada/{record_id}", response_model=Dict[str, Any])
+async def update_setup_paradas_planejadas(
+    record_id: int,
+    data: schemas.CreatePlannedDowntimeSchema, 
+    db: AsyncSession = Depends(get_db)
+):
+    result = await crud.update_planned_downtime(db, record_id, data)
+    if result["status"] == "error":
+        raise HTTPException(status_code=400, detail=result["message"])
+    return result
+

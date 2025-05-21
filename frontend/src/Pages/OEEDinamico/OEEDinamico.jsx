@@ -64,8 +64,11 @@ const OEEDinamico = () => {
           <div style={{ width: '100%', marginTop: '10px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '10px', boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)' }}>
             <h3 style={{ textAlign: 'center' }}>Produção (unidades)</h3>
             <hr style={{ borderColor: '#aaa', width: '95%' }} />
-            {/* <CustomActiveShapePieChart produzido={300} planejado={500} /> */}
-            <GraficoCustomPieChart produzido={responseData["H_Total_pecas_produzidas"]} planejado={responseData["J_Max_pecas_possiveis(IxF)"]} />
+            <GraficoCustomPieChart 
+              produzidoTotal={responseData["H_Total_pecas_produzidas"]} 
+              produzidoBons={responseData["H_Total_pecas_produzidas"] - responseData["L_Total_pecas_defeituosas"]} 
+              planejado={responseData["J_Max_pecas_possiveis(IxF)"]} 
+            />
           </div>
         
           {/* LineSpeed2 PieChartWithNeedle */}

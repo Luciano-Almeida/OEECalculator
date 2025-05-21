@@ -131,13 +131,6 @@ const StopTypesManagement = () => {
     setEditedValues({ name: "", startTime: "", endTime: "" });
   };
 
-
-
-
-
-
-
-
   const handleSelectItem = (id, name, category) => {
     if (category === "planejada") {
       if (selectedPlanejadaItem?.id !== id) {

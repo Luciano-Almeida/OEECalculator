@@ -14,7 +14,12 @@ from database.models import OEESetup, PlannedDowntime, UnplannedDowntime, Parada
 router = APIRouter()
  
 @router.get("/oee/", response_model=Dict)
-async def get_oee(inicio: datetime, fim: datetime, camera_name_id: int, db: AsyncSession = Depends(get_db)):
+async def get_oee(
+    inicio: datetime, 
+    fim: datetime, 
+    camera_name_id: int, 
+    db: AsyncSession = Depends(get_db)
+):
     """
     Retorna uma lista com todas os dados do OEE e do historico de produção discretizado por um periodo
     """
@@ -32,9 +37,8 @@ async def get_oee(inicio: datetime, fim: datetime, camera_name_id: int, db: Asyn
         inicio=inicio,
         fim=fim,
         camera_name_id=camera_name_id,
-        period=timedelta(minutes=1)
+        period=timedelta(minutes=2)
     )
 
     oee_data["discretizado"] = discretized_history
-    print(f"oerr_data", oee_data)
     return oee_data
