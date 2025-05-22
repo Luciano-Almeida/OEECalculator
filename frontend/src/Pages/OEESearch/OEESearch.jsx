@@ -11,6 +11,7 @@ import GraficoCustomPieChart2 from '../Graficos/GraficoCustomPieChart2';
 import MediasIndicadores from './Analises/MediasIndicadores';
 import GraficoLinha from './Analises/GraficoLinha';
 import TotalProduzido from './Analises/TotalProduzido';
+import DowntimeChart from './Analises/DownTimeChart';
 
 const { Option } = Select;
 
@@ -113,6 +114,8 @@ const OEESearch = () => {
         {/* Histórico  ao longo do tempo */}
         <GraficoLinha oeeData={oeeData} />
 
+        {/* Resumo das Paradas */}
+        <DowntimeChart oeeData={oeeData} />
 
 
         {/* mediana, desvio padrão do OEE 

@@ -223,7 +223,15 @@ class ServicoOEE:
                                 velocidade_da_linha=self._cache_setupoee[camera_id].line_speed, 
                                 db=self.db_session
                                 )
-            print(f"@@@@@@@@@@@@@$$$$$$$ oee {oee_data}")
+            
+            #downtime_summary = {"planejadas": 108.82, "nao_planejadas": 85.79, "nao_justificadas": 45.05}
+            downtime_summary = await crud.get_resumo_paradas_by_period(
+                                db=self.db_session,
+                                inicio=turno['start'], 
+                                fim=turno['end'], 
+                                camera_name_id=camera_id,
+                                )
+            
             new_autooee = await crud.create_auto_oee(
                                     db=self.db_session, 
                                     init=oee_data['A_Inicio'], 
@@ -234,6 +242,7 @@ class ServicoOEE:
                                     quality=oee_data['M_Relacao_qualidade(H-(L/H))'],
                                     oee=oee_data['oee(GxKxM)'], 
                                     total_ok=oee_data['H_Total_pecas_produzidas'] - oee_data['L_Total_pecas_defeituosas'], 
+                                    downtime_summary=downtime_summary,
                                     total_not_ok=oee_data['L_Total_pecas_defeituosas']
                                     )
             

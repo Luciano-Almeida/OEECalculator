@@ -45,16 +45,19 @@ from .read import (
     get_last_digest_data_by_camera,
     get_last_parada_by_camera,
     get_last_auto_oee_by_camera,
+    
+)
+
+from .special_read import (
     get_auto_oee_by_period_and_camera,
-
-
     get_digest_data_filtered_by_stop_and_cameraId,
     get_total_planned_downtime_seconds,
     get_total_unplanned_downtime_seconds,
     get_total_ok_nok_from_digest,
     get_total_ok_nok_discretized_by_period,
     get_planned_downtime_filtered_by_init_end_cameraId,
-    get_paradas_com_tipo
+    get_paradas_com_tipo,
+    get_resumo_paradas_by_period
 )
 
 from .update import (

@@ -84,12 +84,13 @@ async def create_unplanned_downtime(
 
 async def create_auto_oee(
     db: AsyncSession, init: datetime, end: datetime, camera_name_id: int, availability: float, performance: float, quality: float,
-    oee: float, total_ok: int, total_not_ok: int
+    oee: float, total_ok: int, total_not_ok: int, downtime_summary: Optional[Dict[str, float]] = None
 ) -> AutoOEE:
     new_oee = AutoOEE(
         init=init, end=end, camera_name_id=camera_name_id,
         availability=availability, performance=performance, 
         quality=quality, oee=oee, total_ok=total_ok, 
-        total_not_ok=total_not_ok
+        total_not_ok=total_not_ok,
+        downtime_summary=downtime_summary
     )
     return await create_record(db, new_oee)

@@ -1,6 +1,8 @@
 from datetime import datetime, time, timedelta
+import random
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, validator
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, List, Optional
 
@@ -16,11 +18,5 @@ from database.models import OEESetup, PlannedDowntime, UnplannedDowntime, Parada
 
 router = APIRouter()
 
-
-'''@router.get("/get_oee_setup/")
-async def get_oee_setup(db : AsyncSession = Depends(get_db)):
-    oee_setup =  await crud.get_all_oee_setups(db)
-
-    return oee_setup'''
 
 

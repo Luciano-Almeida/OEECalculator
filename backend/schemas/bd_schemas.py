@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime, time
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 
 # 📌 OEESetup
@@ -93,7 +93,6 @@ class PlannedDowntimeSetupSchema(BaseModel):
 
 
 # 📌 UnplannedDowntimeSetup
-''' Modelo de entrada (request body) '''
 class CREATEUnplannedDowntimeSetupSchema(BaseModel):
     name: str
 
@@ -101,7 +100,6 @@ class CREATEUnplannedDowntimeSetupSchema(BaseModel):
         from_attributes = True
         #orm_mode = True
 
-''' Modelo de saída (response) '''
 class UnplannedDowntimeSetupSchema(BaseModel):
     id: int
     name: str
@@ -149,14 +147,12 @@ class PlannedDowntimeSchema(BaseModel):
 
 
 # 📌 UnplannedDowntime
-''' Modelo de entrada (request body) '''
 class CreateUnplannedDowntimeSchema(BaseModel):
     user: str
     unplanned_downtime_id: int
     paradas_id: int
     observacoes: str
 
-''' Modelo de saída (response) '''
 class UnplannedDowntimeSchema(BaseModel):
     id: int
     user: str
@@ -182,6 +178,7 @@ class AutoOEESchema(BaseModel):
     oee: float
     total_ok: int
     total_not_ok: int
+    downtime_summary: Optional[Dict[str, float]]
     timestamp: datetime
 
     class Config:

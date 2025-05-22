@@ -8,15 +8,45 @@ import database.crud as crud
 from utils import timedelta_to_iso
 
 
-async def oee_by_period(inicio: datetime, 
+async def oee_by_period(
+                        inicio: datetime, 
                         fim: datetime, 
                         camera_name_id: int, 
                         velocidade_da_linha: float, 
                         db: AsyncSession = Depends(get_db)
                         ) -> Dict:
     """
-    Retorna uma lista com todas os dados do OEE
-    """   
+    Calcula os indicadores de OEE (Overall Equipment Effectiveness) em um período definido.
+
+    A função realiza o cálculo dos três principais pilares do OEE: disponibilidade, desempenho e qualidade.
+    Esses dados são obtidos a partir de informações no banco de dados relacionadas ao tempo de operação da linha,
+    paradas planejadas e não planejadas, produção total e defeitos.
+
+    Args:
+        inicio (datetime): Data e hora de início do período de análise.
+        fim (datetime): Data e hora de fim do período de análise.
+        camera_name_id (int): ID da câmera ou linha de produção a ser analisada.
+        velocidade_da_linha (float): Velocidade teórica da linha de produção em peças por minuto.
+        db (AsyncSession, optional): Sessão assíncrona com o banco de dados, injetada via dependência FastAPI.
+
+    Returns:
+        Dict: Um dicionário contendo os seguintes dados:
+            - A_Inicio: Início do período.
+            - A_Fim: Fim do período.
+            - B_Tempo_total_disponivel: Tempo total disponível (fim - início).
+            - C_Paradas_planejadas: Tempo total de paradas planejadas.
+            - D_Tempo_disponivel_liquido: Tempo disponível líquido (B - C).
+            - E_Paradas_nao_planejadas: Tempo de paradas não planejadas.
+            - F_Tempo_operando: Tempo efetivamente operando (D - E).
+            - G_Relacao_disponibilidade: Percentual de disponibilidade (F / D).
+            - H_Total_pecas_produzidas: Quantidade total de peças produzidas (boas e ruins).
+            - I_Tempo_ideal_ciclo: Taxa ideal de produção (peças/minuto).
+            - J_Max_pecas_possiveis: Quantidade máxima de peças possíveis (F * I).
+            - K_Relacao_desempenho: Percentual de desempenho (H / J).
+            - L_Total_pecas_defeituosas: Quantidade total de peças defeituosas.
+            - M_Relacao_qualidade: Percentual de qualidade ((H - L) / H).
+            - oee: Valor percentual do OEE calculado (G * K * M).
+    """
     # B. Tempo de produção (Total de Tempo Disponível)
     total_available_time = fim - inicio
 

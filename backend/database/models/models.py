@@ -107,4 +107,5 @@ class AutoOEE(Base):
     oee: Mapped[float] = mapped_column(Float, nullable=False)
     total_ok: Mapped[int] = mapped_column(Integer, nullable=False)
     total_not_ok: Mapped[int] = mapped_column(Integer, nullable=False)
+    downtime_summary: Mapped[dict] = mapped_column(JSONB, nullable=True)
     timestamp: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now())
