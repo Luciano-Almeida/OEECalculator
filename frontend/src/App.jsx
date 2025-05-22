@@ -16,6 +16,7 @@ import Relatorio from './Pages/Relatorio'; // Componente de exemplo para Relató
 import { OEEProvider } from './Components/OEEContext';
 import MenuParadas from './Pages/Paradas/MenuParadas';
 import TesteOEESetup from './Pages/OEESetup/testeOEESetup';
+import TrilhaDeAuditoria from './Pages/TrilhaDeAuditoria/TrilhaDeAuditoria';
 
 
 //import OEEParadas from './Pages/Paradas/OEEParadas';
@@ -60,6 +61,8 @@ function App() {
 
         {currentPage === 'OEESetup' && <TesteOEESetup />}
         {currentPage === 'ParadasSetup' && <StopTypesManagement />}
+
+        {currentPage === 'TrilhaDeAuditoria' && <TrilhaDeAuditoria />}
         
 
         {/* Mantém a página atual e abre o pop-up quando necessário */}

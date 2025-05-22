@@ -9,12 +9,14 @@ import botaoParada from '../assets/Botao_Paradas.png'
 import botaoParametros from '../assets/parameters.png'
 
 // Novos Botões
+import botaoAuditoria from '../assets/novos/Botao_Auditoria.png'
 import botaoFundo from '../assets/novos/Botao_Fundo.png'
 import botaoOee from '../assets/novos/Botao_OEE.png'
 import botaoOeeSetup from '../assets/novos/Botao_OEE_Setup3.png'
 import botaoParadas from '../assets/novos/Botao_Paradas3.png' 
 import botaoParadaSetup from '../assets/novos/Botao_Parada_Setup.png' 
 import botaoConsulta from '../assets/novos/Botao_Consulta.png'
+
 
 const Layout = ({ children, onMenuClick}) => {
   const [currentTime, setCurrentTime] = useState('');
@@ -94,15 +96,20 @@ const Layout = ({ children, onMenuClick}) => {
             <p>Consulta</p>
         </div>
 
+        <div className="menu-item" onClick={() => onMenuClick('TrilhaDeAuditoria')}>
+            <img src={botaoAuditoria} alt="Ícone 2" />
+            <p>Auditoria</p>
+        </div>
+
         <div className="menu-item" onClick={() => onMenuClick('OEESetup')}>
             <img src={botaoOeeSetup} alt="Ícone 2" />
             <p>OEE Setup</p>
-          </div>
+        </div>
+
         <div className="menu-item" onClick={() => onMenuClick('ParadasSetup')}>
           <img src={botaoParadaSetup} alt="Ícone 3" />
           <p>Paradas Setup</p>
         </div>
-
         
 
         <div className="menu-item" onClick={() => onMenuClick('Voltar')}>
