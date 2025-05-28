@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: gaugau
+      POSTGRES_DB: Nauta
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./bd:/docker-entrypoint-initdb.d
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d Nauta"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  db-setup:
+    image: postgres:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./bd:/scripts
+    command: >
+      sh -c 'PGPASSWORD=gaugau psql -h postgres -U postgres -d Nauta -f /scripts/NautaDB && echo "Script NautaDB executado com sucesso"'
+    networks:
+      - app-network
+    restart: "no"
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local

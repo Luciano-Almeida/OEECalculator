@@ -2,6 +2,10 @@
 volumes:
   postgres_data_backend: # Volumes para armazenamento persistente do banco de dados PostgreSQL
 
+networks:
+  app-network:
+    external: true
+
 services:
   db_backend:
       image: postgres:16
@@ -16,13 +20,15 @@ services:
         - postgres_data_backend:/var/lib/postgresql/data
         #- ./init_guest_db.sql:/docker-entrypoint-initdb.d/init.sql  # Arquivo que cria as tabelas junto do banco de dados, caso necessário
       ports:
-        - "${POSTGRES_BACKEND_PORT}:${POSTGRES_BACKEND_PORT}"
+        - "${POSTGRES_BACKEND_PORT}:5432"
       #healthcheck:
       #  test: ["CMD", "pg_isready", "-U", "${POSTGRES_GUEST_USER}"]
       #  interval: 30s
       #  timeout: 10s
       #  retries: 5
-      command: -p ${POSTGRES_BACKEND_PORT} # expoe a porta diferente da padrão do postgree
+      #command: -p ${POSTGRES_BACKEND_PORT} # expoe a porta diferente da padrão do postgree
+      networks:
+      - app-network
 
   backend:
     build: ./backend
@@ -31,10 +37,12 @@ services:
     volumes:
       - ./backend:/app
       - C:/sqlite3:/data
-    privileged: true  # Permitindo que o container acesse recursos privilegiados como a câmera
     environment:
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_BACKEND_USER}:${POSTGRES_BACKEND_PASSWORD}@db_backend:${POSTGRES_BACKEND_PORT}/${POSTGRES_BACKEND_DB}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_BACKEND_USER}:${POSTGRES_BACKEND_PASSWORD}@db_backend:5432/${POSTGRES_BACKEND_DB}
+      - EXTERNAL_DATABASE_URL=postgresql+asyncpg://${EXTERNAL_POSTGRES_USER}:${EXTERNAL_POSTGRES_PASSWORD}@${EXTENAL_DOCKER_NAME}:${EXTERNAL_POSTGRES_PORT}/${EXTERNAL_POSTGRES_DB}
       - TZ=America/Sao_Paulo # Timezone
+    networks:
+      - app-network
 
   frontend:
     build: ./frontend
@@ -47,3 +55,5 @@ services:
       - VITE_OEE_STOP_REASONS=Manutenção,Troca de Ferramentas,Configuração,Outros
     depends_on:
       - backend
+    networks:
+      - app-network

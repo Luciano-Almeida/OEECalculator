@@ -1,0 +1,1948 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 17.4 (Debian 17.4-1.pgdg120+2)
+-- Dumped by pg_dump version 17.4
+
+-- Started on 2025-05-01 13:39:11 UTC
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- TOC entry 217 (class 1259 OID 16385)
+-- Name: Auditoria; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."Auditoria" (
+    "Data" timestamp without time zone,
+    "Usuario" character varying,
+    "Tela" character varying,
+    "Acao" character varying,
+    "Detalhe" character varying
+);
+
+
+ALTER TABLE public."Auditoria" OWNER TO postgres;
+
+--
+-- TOC entry 218 (class 1259 OID 16390)
+-- Name: BatchId; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."BatchId" (
+    "ID" integer NOT NULL,
+    "Lote" character varying
+);
+
+
+ALTER TABLE public."BatchId" OWNER TO postgres;
+
+--
+-- TOC entry 219 (class 1259 OID 16395)
+-- Name: BatchId_ID_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public."BatchId_ID_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."BatchId_ID_seq" OWNER TO postgres;
+
+--
+-- TOC entry 3593 (class 0 OID 0)
+-- Dependencies: 219
+-- Name: BatchId_ID_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public."BatchId_ID_seq" OWNED BY public."BatchId"."ID";
+
+
+--
+-- TOC entry 220 (class 1259 OID 16396)
+-- Name: Dispositivos; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."Dispositivos" (
+    "ID" integer NOT NULL,
+    nome character varying,
+    descricao character varying,
+    caminho character varying,
+    parametros character varying,
+    "protocoloAtivo" boolean
+);
+
+
+ALTER TABLE public."Dispositivos" OWNER TO postgres;
+
+--
+-- TOC entry 221 (class 1259 OID 16401)
+-- Name: Dispositivos_ID_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."Dispositivos" ALTER COLUMN "ID" ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public."Dispositivos_ID_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 222 (class 1259 OID 16402)
+-- Name: EnderecosComunicacao; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."EnderecosComunicacao" (
+    "ID" integer NOT NULL,
+    endereco character varying,
+    nome character varying,
+    porta character varying
+);
+
+
+ALTER TABLE public."EnderecosComunicacao" OWNER TO postgres;
+
+--
+-- TOC entry 223 (class 1259 OID 16407)
+-- Name: EnderecosComunicacao_ID_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."EnderecosComunicacao" ALTER COLUMN "ID" ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public."EnderecosComunicacao_ID_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 224 (class 1259 OID 16408)
+-- Name: Global; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."Global" (
+    licenca character varying,
+    empresa character varying,
+    modelo character varying,
+    "numeroSerie" character varying[],
+    "tecladoVirtual" boolean,
+    registro timestamp without time zone,
+    "tipoPlc" boolean,
+    alarmes boolean[],
+    "usuarioAtivo_ID" integer,
+    "dataInstalacao" date,
+    linha character varying,
+    "produtoAtivo_ID" integer,
+    "ultProdutoAtivo" integer,
+    "NobreakAtivo" boolean DEFAULT false NOT NULL,
+    "TempoNobreak" smallint DEFAULT 2,
+    "UltimaConexaoPlc" smallint
+);
+ALTER TABLE ONLY public."Global" ALTER COLUMN "numeroSerie" SET STORAGE PLAIN;
+
+
+ALTER TABLE public."Global" OWNER TO postgres;
+
+--
+-- TOC entry 225 (class 1259 OID 16415)
+-- Name: NivelAcesso; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."NivelAcesso" (
+    "ID" integer NOT NULL,
+    "ReqSenha_ID" integer,
+    "Nome" character varying NOT NULL,
+    "Descricao" character varying
+);
+
+
+ALTER TABLE public."NivelAcesso" OWNER TO postgres;
+
+--
+-- TOC entry 226 (class 1259 OID 16420)
+-- Name: NivelAcesso_ID_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."NivelAcesso" ALTER COLUMN "ID" ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public."NivelAcesso_ID_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 227 (class 1259 OID 16421)
+-- Name: ParametrosRejeito; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."ParametrosRejeito" (
+    "ID" integer NOT NULL,
+    "habRejeito" boolean,
+    "habControleRejeito" boolean,
+    "habPistao" boolean,
+    "tempoPistao" smallint,
+    "tempoClock" smallint,
+    "tipoClock" boolean
+);
+
+
+ALTER TABLE public."ParametrosRejeito" OWNER TO postgres;
+
+--
+-- TOC entry 228 (class 1259 OID 16424)
+-- Name: ParametrosRejeito_ID_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."ParametrosRejeito" ALTER COLUMN "ID" ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public."ParametrosRejeito_ID_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 229 (class 1259 OID 16425)
+-- Name: ParametrosShift; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."ParametrosShift" (
+    "ID" integer NOT NULL,
+    "ParametrosRejeito_ID" integer,
+    "Produtos_ID" integer,
+    shift smallint,
+    "tamanhoShift" smallint,
+    "numPontos" smallint,
+    "erroConsecutivo" smallint,
+    hab boolean
+);
+
+
+ALTER TABLE public."ParametrosShift" OWNER TO postgres;
+
+--
+-- TOC entry 230 (class 1259 OID 16428)
+-- Name: ParametrosShift_ID_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."ParametrosShift" ALTER COLUMN "ID" ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public."ParametrosShift_ID_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 231 (class 1259 OID 16429)
+-- Name: PermissoesExecDispositivos; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."PermissoesExecDispositivos" (
+    "ID" integer NOT NULL,
+    "NivelAcesso_ID" integer,
+    "Dispositivos_ID" integer,
+    valor boolean
+);
+
+
+ALTER TABLE public."PermissoesExecDispositivos" OWNER TO postgres;
+
+--
+-- TOC entry 232 (class 1259 OID 16432)
+-- Name: PermissoesExecDispositivos_ID_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."PermissoesExecDispositivos" ALTER COLUMN "ID" ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public."PermissoesExecDispositivos_ID_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 233 (class 1259 OID 16433)
+-- Name: PermissoesNauta; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."PermissoesNauta" (
+    "ID" integer NOT NULL,
+    "NivelAcesso_ID" integer,
+    permissao character varying,
+    valor boolean
+);
+
+
+ALTER TABLE public."PermissoesNauta" OWNER TO postgres;
+
+--
+-- TOC entry 234 (class 1259 OID 16438)
+-- Name: PermissoesNauta_ID_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."PermissoesNauta" ALTER COLUMN "ID" ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public."PermissoesNauta_ID_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 235 (class 1259 OID 16439)
+-- Name: PermissoesQuery; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."PermissoesQuery" (
+    "ID" integer NOT NULL,
+    "NivelAcesso_ID" integer,
+    permissao character varying,
+    valor boolean
+);
+
+
+ALTER TABLE public."PermissoesQuery" OWNER TO postgres;
+
+--
+-- TOC entry 236 (class 1259 OID 16444)
+-- Name: PermissoesQuery_ID_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."PermissoesQuery" ALTER COLUMN "ID" ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public."PermissoesQuery_ID_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 237 (class 1259 OID 16445)
+-- Name: PermissoesShift; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."PermissoesShift" (
+    "ID" integer NOT NULL,
+    "NivelAcesso_ID" integer,
+    permissao character varying,
+    valor boolean
+);
+
+
+ALTER TABLE public."PermissoesShift" OWNER TO postgres;
+
+--
+-- TOC entry 238 (class 1259 OID 16450)
+-- Name: PermissoesShift_ID_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."PermissoesShift" ALTER COLUMN "ID" ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public."PermissoesShift_ID_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 239 (class 1259 OID 16451)
+-- Name: Produtos; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."Produtos" (
+    "ID" integer NOT NULL,
+    nome character varying NOT NULL,
+    "textoLivre" character varying,
+    parametros character varying
+);
+
+
+ALTER TABLE public."Produtos" OWNER TO postgres;
+
+--
+-- TOC entry 240 (class 1259 OID 16456)
+-- Name: Produtos_ID_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."Produtos" ALTER COLUMN "ID" ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public."Produtos_ID_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 241 (class 1259 OID 16457)
+-- Name: ReqSenha; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."ReqSenha" (
+    "ID" integer NOT NULL,
+    "minCaracteres" smallint,
+    "minLetras" smallint,
+    "minNumeros" smallint,
+    "minCaracEspecial" smallint,
+    "numTentativas" smallint,
+    "duracaoSenha" smallint,
+    "tempoInatividade" smallint,
+    "exigeLetras" boolean,
+    "exigeNumeros" boolean,
+    "exigeMaiuscula" boolean,
+    "exigeEspecial" boolean,
+    "minMaiuscula" smallint
+);
+
+
+ALTER TABLE public."ReqSenha" OWNER TO postgres;
+
+--
+-- TOC entry 242 (class 1259 OID 16460)
+-- Name: ReqSenha_ID_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."ReqSenha" ALTER COLUMN "ID" ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public."ReqSenha_ID_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 243 (class 1259 OID 16461)
+-- Name: Usuarios; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."Usuarios" (
+    "ID" integer NOT NULL,
+    "Nome" character varying NOT NULL,
+    senha character varying NOT NULL,
+    "NivelAcesso_ID" integer,
+    validade character varying NOT NULL,
+    usuario character varying NOT NULL,
+    "ultAltSenha" date NOT NULL,
+    ativo boolean
+);
+
+
+ALTER TABLE public."Usuarios" OWNER TO postgres;
+
+--
+-- TOC entry 244 (class 1259 OID 16466)
+-- Name: Usuarios_ID_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."Usuarios" ALTER COLUMN "ID" ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public."Usuarios_ID_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 245 (class 1259 OID 16467)
+-- Name: auto_oee; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.auto_oee (
+    id integer NOT NULL,
+    availability double precision NOT NULL,
+    performance double precision NOT NULL,
+    quality double precision NOT NULL,
+    oee double precision NOT NULL,
+    total_ok integer NOT NULL,
+    total_not_ok integer NOT NULL,
+    "timestamp" timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.auto_oee OWNER TO postgres;
+
+--
+-- TOC entry 246 (class 1259 OID 16471)
+-- Name: auto_oee_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.auto_oee_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.auto_oee_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 3594 (class 0 OID 0)
+-- Dependencies: 246
+-- Name: auto_oee_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.auto_oee_id_seq OWNED BY public.auto_oee.id;
+
+
+--
+-- TOC entry 247 (class 1259 OID 16472)
+-- Name: data_received; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.data_received (
+    id integer NOT NULL,
+    ok_nok integer NOT NULL,
+    dados character varying NOT NULL,
+    lote_id integer NOT NULL,
+    camera_name_id integer,
+    "timestamp" timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.data_received OWNER TO postgres;
+
+--
+-- TOC entry 248 (class 1259 OID 16478)
+-- Name: data_received_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.data_received_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.data_received_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 3595 (class 0 OID 0)
+-- Dependencies: 248
+-- Name: data_received_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.data_received_id_seq OWNED BY public.data_received.id;
+
+
+--
+-- TOC entry 249 (class 1259 OID 16479)
+-- Name: digest_data; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.digest_data (
+    id integer NOT NULL,
+    ok integer NOT NULL,
+    nok integer NOT NULL,
+    lote_id integer NOT NULL,
+    camera_name_id integer,
+    start_digest timestamp without time zone NOT NULL,
+    stop_digest timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE public.digest_data OWNER TO postgres;
+
+--
+-- TOC entry 250 (class 1259 OID 16482)
+-- Name: digest_data_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.digest_data_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.digest_data_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 3596 (class 0 OID 0)
+-- Dependencies: 250
+-- Name: digest_data_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.digest_data_id_seq OWNED BY public.digest_data.id;
+
+
+--
+-- TOC entry 251 (class 1259 OID 16483)
+-- Name: oee_setup; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.oee_setup (
+    id integer NOT NULL,
+    "user" character varying NOT NULL,
+    start_shift timestamp without time zone NOT NULL,
+    stop_shift timestamp without time zone NOT NULL,
+    stop_time double precision NOT NULL,
+    digest_time double precision NOT NULL,
+    line_speed double precision NOT NULL,
+    camera_name_id integer,
+    "timestamp" timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.oee_setup OWNER TO postgres;
+
+--
+-- TOC entry 252 (class 1259 OID 16489)
+-- Name: oee_setup_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.oee_setup_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.oee_setup_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 3597 (class 0 OID 0)
+-- Dependencies: 252
+-- Name: oee_setup_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.oee_setup_id_seq OWNED BY public.oee_setup.id;
+
+
+--
+-- TOC entry 253 (class 1259 OID 16490)
+-- Name: paradas; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.paradas (
+    id integer NOT NULL,
+    start timestamp without time zone NOT NULL,
+    stop timestamp without time zone NOT NULL,
+    camera_name_id integer
+);
+
+
+ALTER TABLE public.paradas OWNER TO postgres;
+
+--
+-- TOC entry 254 (class 1259 OID 16493)
+-- Name: paradas_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.paradas_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.paradas_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 3598 (class 0 OID 0)
+-- Dependencies: 254
+-- Name: paradas_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.paradas_id_seq OWNED BY public.paradas.id;
+
+
+--
+-- TOC entry 255 (class 1259 OID 16494)
+-- Name: planned_downtime; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.planned_downtime (
+    id integer NOT NULL,
+    "user" character varying NOT NULL,
+    planned_downtime_id integer NOT NULL,
+    paradas_id integer NOT NULL,
+    observacoes text,
+    "timestamp" timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.planned_downtime OWNER TO postgres;
+
+--
+-- TOC entry 256 (class 1259 OID 16500)
+-- Name: planned_downtime_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.planned_downtime_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.planned_downtime_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 3599 (class 0 OID 0)
+-- Dependencies: 256
+-- Name: planned_downtime_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.planned_downtime_id_seq OWNED BY public.planned_downtime.id;
+
+
+--
+-- TOC entry 257 (class 1259 OID 16501)
+-- Name: planned_downtime_setup; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.planned_downtime_setup (
+    id integer NOT NULL,
+    name character varying NOT NULL,
+    start_time time without time zone NOT NULL,
+    stop_time time without time zone NOT NULL,
+    camera_name_id integer NOT NULL
+);
+
+
+ALTER TABLE public.planned_downtime_setup OWNER TO postgres;
+
+--
+-- TOC entry 258 (class 1259 OID 16506)
+-- Name: planned_downtime_setup_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.planned_downtime_setup_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.planned_downtime_setup_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 3600 (class 0 OID 0)
+-- Dependencies: 258
+-- Name: planned_downtime_setup_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.planned_downtime_setup_id_seq OWNED BY public.planned_downtime_setup.id;
+
+
+--
+-- TOC entry 259 (class 1259 OID 16507)
+-- Name: unplanned_downtime; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.unplanned_downtime (
+    id integer NOT NULL,
+    "user" character varying NOT NULL,
+    unplanned_downtime_id integer NOT NULL,
+    paradas_id integer NOT NULL,
+    observacoes text,
+    "timestamp" timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.unplanned_downtime OWNER TO postgres;
+
+--
+-- TOC entry 260 (class 1259 OID 16513)
+-- Name: unplanned_downtime_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.unplanned_downtime_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.unplanned_downtime_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 3601 (class 0 OID 0)
+-- Dependencies: 260
+-- Name: unplanned_downtime_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.unplanned_downtime_id_seq OWNED BY public.unplanned_downtime.id;
+
+
+--
+-- TOC entry 261 (class 1259 OID 16514)
+-- Name: unplanned_downtime_setup; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.unplanned_downtime_setup (
+    id integer NOT NULL,
+    name character varying NOT NULL
+);
+
+
+ALTER TABLE public.unplanned_downtime_setup OWNER TO postgres;
+
+--
+-- TOC entry 262 (class 1259 OID 16519)
+-- Name: unplanned_downtime_setup_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.unplanned_downtime_setup_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.unplanned_downtime_setup_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 3602 (class 0 OID 0)
+-- Dependencies: 262
+-- Name: unplanned_downtime_setup_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.unplanned_downtime_setup_id_seq OWNED BY public.unplanned_downtime_setup.id;
+
+
+--
+-- TOC entry 3323 (class 2604 OID 16520)
+-- Name: BatchId ID; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."BatchId" ALTER COLUMN "ID" SET DEFAULT nextval('public."BatchId_ID_seq"'::regclass);
+
+
+--
+-- TOC entry 3326 (class 2604 OID 16521)
+-- Name: auto_oee id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.auto_oee ALTER COLUMN id SET DEFAULT nextval('public.auto_oee_id_seq'::regclass);
+
+
+--
+-- TOC entry 3328 (class 2604 OID 16522)
+-- Name: data_received id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.data_received ALTER COLUMN id SET DEFAULT nextval('public.data_received_id_seq'::regclass);
+
+
+--
+-- TOC entry 3330 (class 2604 OID 16523)
+-- Name: digest_data id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.digest_data ALTER COLUMN id SET DEFAULT nextval('public.digest_data_id_seq'::regclass);
+
+
+--
+-- TOC entry 3331 (class 2604 OID 16524)
+-- Name: oee_setup id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.oee_setup ALTER COLUMN id SET DEFAULT nextval('public.oee_setup_id_seq'::regclass);
+
+
+--
+-- TOC entry 3333 (class 2604 OID 16525)
+-- Name: paradas id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.paradas ALTER COLUMN id SET DEFAULT nextval('public.paradas_id_seq'::regclass);
+
+
+--
+-- TOC entry 3334 (class 2604 OID 16526)
+-- Name: planned_downtime id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.planned_downtime ALTER COLUMN id SET DEFAULT nextval('public.planned_downtime_id_seq'::regclass);
+
+
+--
+-- TOC entry 3336 (class 2604 OID 16527)
+-- Name: planned_downtime_setup id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.planned_downtime_setup ALTER COLUMN id SET DEFAULT nextval('public.planned_downtime_setup_id_seq'::regclass);
+
+
+--
+-- TOC entry 3337 (class 2604 OID 16528)
+-- Name: unplanned_downtime id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.unplanned_downtime ALTER COLUMN id SET DEFAULT nextval('public.unplanned_downtime_id_seq'::regclass);
+
+
+--
+-- TOC entry 3339 (class 2604 OID 16529)
+-- Name: unplanned_downtime_setup id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.unplanned_downtime_setup ALTER COLUMN id SET DEFAULT nextval('public.unplanned_downtime_setup_id_seq'::regclass);
+
+
+--
+-- TOC entry 3542 (class 0 OID 16385)
+-- Dependencies: 217
+-- Data for Name: Auditoria; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."Auditoria" ("Data", "Usuario", "Tela", "Acao", "Detalhe") FROM stdin;
+\.
+
+
+--
+-- TOC entry 3543 (class 0 OID 16390)
+-- Dependencies: 218
+-- Data for Name: BatchId; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."BatchId" ("ID", "Lote") FROM stdin;
+\.
+
+
+--
+-- TOC entry 3545 (class 0 OID 16396)
+-- Dependencies: 220
+-- Data for Name: Dispositivos; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."Dispositivos" ("ID", nome, descricao, caminho, parametros, "protocoloAtivo") FROM stdin;
+3	Relatório	Estatísticas de produção	C:\\Gautama\\Query\\Query.exe		f
+1	Câmera	Configuração da câmera	C:\\Gautama\\SCMVS\\SCMVS\\Applications\\Win64\\SCMVS.exe		f
+2	Shift	Sistema de rejeito	C:\\Gautama\\Shift\\Shift.exe	schneider	t
+\.
+
+
+--
+-- TOC entry 3547 (class 0 OID 16402)
+-- Dependencies: 222
+-- Data for Name: EnderecosComunicacao; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."EnderecosComunicacao" ("ID", endereco, nome, porta) FROM stdin;
+1	192.168.0.100	PLC	502
+2	192.168.0.20	Câmera	8192
+\.
+
+
+--
+-- TOC entry 3549 (class 0 OID 16408)
+-- Dependencies: 224
+-- Data for Name: Global; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."Global" (licenca, empresa, modelo, "numeroSerie", "tecladoVirtual", registro, "tipoPlc", alarmes, "usuarioAtivo_ID", "dataInstalacao", linha, "produtoAtivo_ID", "ultProdutoAtivo", "NobreakAtivo", "TempoNobreak", "UltimaConexaoPlc") FROM stdin;
+0CCC47E750BA	Gautama	PROG	{0,1}	f	2025-05-01 10:10:04.104623	f	{f,f,f}	1	2025-04-25	Linha Gautama	1	2	t	2	12
+\.
+
+
+--
+-- TOC entry 3550 (class 0 OID 16415)
+-- Dependencies: 225
+-- Data for Name: NivelAcesso; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."NivelAcesso" ("ID", "ReqSenha_ID", "Nome", "Descricao") FROM stdin;
+1	1	Padrão	Nível padrão do sistema
+2	2	admin	administrador
+4	4	sup	supervisor
+5	5	oper	operação
+3	3	manut	manutenção
+\.
+
+
+--
+-- TOC entry 3552 (class 0 OID 16421)
+-- Dependencies: 227
+-- Data for Name: ParametrosRejeito; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."ParametrosRejeito" ("ID", "habRejeito", "habControleRejeito", "habPistao", "tempoPistao", "tempoClock", "tipoClock") FROM stdin;
+2	t	t	t	20	50	f
+1	t	f	t	20	50	f
+\.
+
+
+--
+-- TOC entry 3554 (class 0 OID 16425)
+-- Dependencies: 229
+-- Data for Name: ParametrosShift; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."ParametrosShift" ("ID", "ParametrosRejeito_ID", "Produtos_ID", shift, "tamanhoShift", "numPontos", "erroConsecutivo", hab) FROM stdin;
+5	2	2	1	10	1	0	t
+6	2	2	2	1	1	0	f
+7	2	2	3	1	1	0	f
+8	2	2	4	1	1	0	f
+1	1	1	1	63	2	0	t
+2	1	1	2	16	1	0	f
+3	1	1	3	1	1	0	f
+4	1	1	4	1	1	0	f
+\.
+
+
+--
+-- TOC entry 3556 (class 0 OID 16429)
+-- Dependencies: 231
+-- Data for Name: PermissoesExecDispositivos; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."PermissoesExecDispositivos" ("ID", "NivelAcesso_ID", "Dispositivos_ID", valor) FROM stdin;
+4	2	1	t
+5	2	2	t
+6	2	3	t
+10	4	1	t
+11	4	2	t
+12	4	3	t
+13	5	1	t
+14	5	2	t
+15	5	3	t
+1	1	1	f
+2	1	2	f
+3	1	3	f
+7	3	1	t
+8	3	2	t
+9	3	3	t
+\.
+
+
+--
+-- TOC entry 3558 (class 0 OID 16433)
+-- Dependencies: 233
+-- Data for Name: PermissoesNauta; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."PermissoesNauta" ("ID", "NivelAcesso_ID", permissao, valor) FROM stdin;
+1	1	ADM_USUARIOS.AUDITORIA	f
+2	1	ADM_USUARIOS.EDITAR	f
+3	1	ADM_USUARIOS.EXCLUIR	f
+4	1	ADM_USUARIOS.INCLUIR	f
+5	1	ADM_USUARIOS.NIVEIS	f
+6	1	AUDITORIA.EXPORTAR	f
+7	1	DISPOSITIVOS.EDITAR	f
+8	1	DISPOSITIVOS.EXCLUIR	f
+9	1	DISPOSITIVOS.EXECUTAR	f
+10	1	DISPOSITIVOS.INCLUIR	f
+11	1	NIVEIS.EDITAR	f
+12	1	NIVEIS.EXCLUIR	f
+13	1	NIVEIS.INCLUIR	f
+14	1	PRINCIPAL.ADM_USUARIOS	f
+15	1	PRINCIPAL.AJUSTAR_DATA_HORA	f
+16	1	PRINCIPAL.DESLIGAR	t
+17	1	PRINCIPAL.DISPOSITIVOS	t
+18	1	PRINCIPAL.PRODUTOS	t
+19	1	PRODUTOS.ABRIR_PRODUTO	f
+20	1	PRODUTOS.EDITAR	f
+21	1	PRODUTOS.EXCLUIR	f
+22	1	PRODUTOS.INCLUIR	f
+23	2	ADM_USUARIOS.AUDITORIA	t
+24	2	ADM_USUARIOS.EDITAR	t
+25	2	ADM_USUARIOS.EXCLUIR	t
+26	2	ADM_USUARIOS.INCLUIR	t
+27	2	ADM_USUARIOS.NIVEIS	t
+28	2	AUDITORIA.EXPORTAR	t
+29	2	DISPOSITIVOS.EDITAR	f
+30	2	DISPOSITIVOS.EXCLUIR	f
+31	2	DISPOSITIVOS.EXECUTAR	f
+32	2	DISPOSITIVOS.INCLUIR	f
+33	2	NIVEIS.EDITAR	t
+34	2	NIVEIS.EXCLUIR	t
+35	2	NIVEIS.INCLUIR	t
+36	2	PRINCIPAL.ADM_USUARIOS	t
+37	2	PRINCIPAL.AJUSTAR_DATA_HORA	t
+38	2	PRINCIPAL.DESLIGAR	t
+39	2	PRINCIPAL.DISPOSITIVOS	f
+40	2	PRINCIPAL.PRODUTOS	f
+41	2	PRODUTOS.ABRIR_PRODUTO	f
+42	2	PRODUTOS.EDITAR	f
+43	2	PRODUTOS.EXCLUIR	f
+44	2	PRODUTOS.INCLUIR	f
+67	4	ADM_USUARIOS.AUDITORIA	t
+68	4	ADM_USUARIOS.EDITAR	t
+69	4	ADM_USUARIOS.EXCLUIR	t
+70	4	ADM_USUARIOS.INCLUIR	t
+71	4	ADM_USUARIOS.NIVEIS	f
+72	4	AUDITORIA.EXPORTAR	t
+73	4	DISPOSITIVOS.EDITAR	f
+74	4	DISPOSITIVOS.EXCLUIR	f
+75	4	DISPOSITIVOS.EXECUTAR	t
+76	4	DISPOSITIVOS.INCLUIR	f
+77	4	NIVEIS.EDITAR	t
+78	4	NIVEIS.EXCLUIR	t
+79	4	NIVEIS.INCLUIR	t
+80	4	PRINCIPAL.ADM_USUARIOS	t
+81	4	PRINCIPAL.AJUSTAR_DATA_HORA	t
+82	4	PRINCIPAL.DESLIGAR	t
+83	4	PRINCIPAL.DISPOSITIVOS	t
+84	4	PRINCIPAL.PRODUTOS	t
+85	4	PRODUTOS.ABRIR_PRODUTO	t
+86	4	PRODUTOS.EDITAR	t
+87	4	PRODUTOS.EXCLUIR	t
+88	4	PRODUTOS.INCLUIR	t
+89	5	ADM_USUARIOS.AUDITORIA	f
+90	5	ADM_USUARIOS.EDITAR	f
+91	5	ADM_USUARIOS.EXCLUIR	f
+92	5	ADM_USUARIOS.INCLUIR	f
+93	5	ADM_USUARIOS.NIVEIS	f
+94	5	AUDITORIA.EXPORTAR	f
+95	5	DISPOSITIVOS.EDITAR	f
+96	5	DISPOSITIVOS.EXCLUIR	f
+97	5	DISPOSITIVOS.EXECUTAR	t
+98	5	DISPOSITIVOS.INCLUIR	f
+99	5	NIVEIS.EDITAR	f
+100	5	NIVEIS.EXCLUIR	f
+101	5	NIVEIS.INCLUIR	f
+102	5	PRINCIPAL.ADM_USUARIOS	f
+103	5	PRINCIPAL.AJUSTAR_DATA_HORA	f
+104	5	PRINCIPAL.DESLIGAR	t
+105	5	PRINCIPAL.DISPOSITIVOS	t
+106	5	PRINCIPAL.PRODUTOS	t
+107	5	PRODUTOS.ABRIR_PRODUTO	t
+108	5	PRODUTOS.EDITAR	f
+109	5	PRODUTOS.EXCLUIR	f
+110	5	PRODUTOS.INCLUIR	f
+177	1	PRINCIPAL.INSTALAÇÃO	f
+178	2	PRINCIPAL.INSTALAÇÃO	f
+180	4	PRINCIPAL.INSTALAÇÃO	f
+181	5	PRINCIPAL.INSTALAÇÃO	f
+48	3	ADM_USUARIOS.INCLUIR	f
+49	3	ADM_USUARIOS.NIVEIS	f
+50	3	AUDITORIA.EXPORTAR	f
+51	3	DISPOSITIVOS.EDITAR	f
+52	3	DISPOSITIVOS.EXCLUIR	f
+53	3	DISPOSITIVOS.EXECUTAR	t
+54	3	DISPOSITIVOS.INCLUIR	f
+55	3	NIVEIS.EDITAR	f
+56	3	NIVEIS.EXCLUIR	f
+58	3	PRINCIPAL.ADM_USUARIOS	f
+59	3	PRINCIPAL.AJUSTAR_DATA_HORA	t
+60	3	PRINCIPAL.DESLIGAR	t
+61	3	PRINCIPAL.DISPOSITIVOS	t
+62	3	PRINCIPAL.PRODUTOS	t
+63	3	PRODUTOS.ABRIR_PRODUTO	t
+64	3	PRODUTOS.EDITAR	t
+65	3	PRODUTOS.EXCLUIR	t
+66	3	PRODUTOS.INCLUIR	t
+179	3	PRINCIPAL.INSTALAÇÃO	f
+45	3	ADM_USUARIOS.AUDITORIA	f
+46	3	ADM_USUARIOS.EDITAR	f
+47	3	ADM_USUARIOS.EXCLUIR	f
+57	3	NIVEIS.INCLUIR	f
+\.
+
+
+--
+-- TOC entry 3560 (class 0 OID 16439)
+-- Dependencies: 235
+-- Data for Name: PermissoesQuery; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."PermissoesQuery" ("ID", "NivelAcesso_ID", permissao, valor) FROM stdin;
+1	1	QUERY.ALARMES	t
+6	2	QUERY.ALARMES	t
+16	4	QUERY.ALARMES	t
+21	5	QUERY.ALARMES	t
+2	1	QUERY.EXPORTAR	f
+7	2	QUERY.EXPORTAR	t
+17	4	QUERY.EXPORTAR	t
+22	5	QUERY.EXPORTAR	f
+3	1	QUERY.IMAGENS	t
+8	2	QUERY.IMAGENS	t
+18	4	QUERY.IMAGENS	t
+23	5	QUERY.IMAGENS	t
+4	1	QUERY.PESQUISA	t
+9	2	QUERY.PESQUISA	t
+19	4	QUERY.PESQUISA	t
+24	5	QUERY.PESQUISA	t
+5	1	QUERY.TROCA_LOTE	f
+10	2	QUERY.TROCA_LOTE	f
+20	4	QUERY.TROCA_LOTE	t
+25	5	QUERY.TROCA_LOTE	t
+11	3	QUERY.ALARMES	t
+12	3	QUERY.EXPORTAR	t
+13	3	QUERY.IMAGENS	t
+14	3	QUERY.PESQUISA	t
+15	3	QUERY.TROCA_LOTE	t
+\.
+
+
+--
+-- TOC entry 3562 (class 0 OID 16445)
+-- Dependencies: 237
+-- Data for Name: PermissoesShift; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."PermissoesShift" ("ID", "NivelAcesso_ID", permissao, valor) FROM stdin;
+1	1	PARÂMETROS.HAB_CONTROLE_REJEITO	f
+11	2	PARÂMETROS.HAB_CONTROLE_REJEITO	f
+31	4	PARÂMETROS.HAB_CONTROLE_REJEITO	t
+41	5	PARÂMETROS.HAB_CONTROLE_REJEITO	f
+2	1	PARÂMETROS.HAB_PISTÃO	f
+12	2	PARÂMETROS.HAB_PISTÃO	f
+32	4	PARÂMETROS.HAB_PISTÃO	t
+42	5	PARÂMETROS.HAB_PISTÃO	f
+3	1	PARÂMETROS.HAB_REJEITO	f
+13	2	PARÂMETROS.HAB_REJEITO	f
+33	4	PARÂMETROS.HAB_REJEITO	t
+43	5	PARÂMETROS.HAB_REJEITO	f
+4	1	PARÂMETROS.SHIFT1	f
+14	2	PARÂMETROS.SHIFT1	f
+34	4	PARÂMETROS.SHIFT1	t
+44	5	PARÂMETROS.SHIFT1	f
+5	1	PARÂMETROS.SHIFT2	f
+15	2	PARÂMETROS.SHIFT2	f
+35	4	PARÂMETROS.SHIFT2	t
+45	5	PARÂMETROS.SHIFT2	f
+6	1	PARÂMETROS.SHIFT3	f
+16	2	PARÂMETROS.SHIFT3	f
+36	4	PARÂMETROS.SHIFT3	t
+46	5	PARÂMETROS.SHIFT3	f
+7	1	PARÂMETROS.SHIFT4	f
+17	2	PARÂMETROS.SHIFT4	f
+37	4	PARÂMETROS.SHIFT4	t
+47	5	PARÂMETROS.SHIFT4	f
+8	1	SHIFT.RESET	f
+18	2	SHIFT.RESET	f
+38	4	SHIFT.RESET	t
+48	5	SHIFT.RESET	f
+9	1	SHIFT.PARÂMETROS	f
+19	2	SHIFT.PARÂMETROS	f
+39	4	SHIFT.PARÂMETROS	t
+49	5	SHIFT.PARÂMETROS	f
+10	1	SHIFT.ALARMES	t
+20	2	SHIFT.ALARMES	f
+40	4	SHIFT.ALARMES	t
+50	5	SHIFT.ALARMES	t
+81	1	PARÂMETROS.TEMPO_ACIONAMENTO	f
+82	2	PARÂMETROS.TEMPO_ACIONAMENTO	f
+84	4	PARÂMETROS.TEMPO_ACIONAMENTO	f
+85	5	PARÂMETROS.TEMPO_ACIONAMENTO	f
+21	3	PARÂMETROS.HAB_CONTROLE_REJEITO	t
+22	3	PARÂMETROS.HAB_PISTÃO	t
+23	3	PARÂMETROS.HAB_REJEITO	t
+24	3	PARÂMETROS.SHIFT1	t
+25	3	PARÂMETROS.SHIFT2	t
+26	3	PARÂMETROS.SHIFT3	t
+27	3	PARÂMETROS.SHIFT4	t
+83	3	PARÂMETROS.TEMPO_ACIONAMENTO	t
+30	3	SHIFT.ALARMES	t
+29	3	SHIFT.PARÂMETROS	t
+28	3	SHIFT.RESET	t
+\.
+
+
+--
+-- TOC entry 3564 (class 0 OID 16451)
+-- Dependencies: 239
+-- Data for Name: Produtos; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."Produtos" ("ID", nome, "textoLivre", parametros) FROM stdin;
+1	Produto1	\N	\N
+2	Produto2	\N	\N
+\.
+
+
+--
+-- TOC entry 3566 (class 0 OID 16457)
+-- Dependencies: 241
+-- Data for Name: ReqSenha; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."ReqSenha" ("ID", "minCaracteres", "minLetras", "minNumeros", "minCaracEspecial", "numTentativas", "duracaoSenha", "tempoInatividade", "exigeLetras", "exigeNumeros", "exigeMaiuscula", "exigeEspecial", "minMaiuscula") FROM stdin;
+2	6	1	1	1	3	90	720	t	t	t	t	1
+4	6	1	1	1	3	90	720	t	t	t	t	1
+5	6	1	1	1	3	90	720	t	t	t	t	1
+1	6	1	1	1	7	180	3000	f	f	f	f	1
+3	6	1	1	1	3	90	720	t	t	t	t	1
+\.
+
+
+--
+-- TOC entry 3568 (class 0 OID 16461)
+-- Dependencies: 243
+-- Data for Name: Usuarios; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."Usuarios" ("ID", "Nome", senha, "NivelAcesso_ID", validade, usuario, "ultAltSenha", ativo) FROM stdin;
+1	Convidado		1	Permanente	Convidado	2025-03-02	t
+2	444	444Q!@	2	Permanente	444	2025-02-13	t
+3	333	333Q!@	3	Permanente	333	2025-03-11	t
+4	222	222Q!@	4	Permanente	222	2025-01-29	t
+5	111	111Q!@	5	Permanente	111	2025-01-11	t
+\.
+
+
+--
+-- TOC entry 3570 (class 0 OID 16467)
+-- Dependencies: 245
+-- Data for Name: auto_oee; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.auto_oee (id, availability, performance, quality, oee, total_ok, total_not_ok, "timestamp") FROM stdin;
+\.
+
+
+--
+-- TOC entry 3572 (class 0 OID 16472)
+-- Dependencies: 247
+-- Data for Name: data_received; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.data_received (id, ok_nok, dados, lote_id, camera_name_id, "timestamp") FROM stdin;
+\.
+
+
+--
+-- TOC entry 3574 (class 0 OID 16479)
+-- Dependencies: 249
+-- Data for Name: digest_data; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.digest_data (id, ok, nok, lote_id, camera_name_id, start_digest, stop_digest) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3576 (class 0 OID 16483)
+-- Dependencies: 251
+-- Data for Name: oee_setup; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.oee_setup (id, "user", start_shift, stop_shift, stop_time, digest_time, line_speed, camera_name_id, "timestamp") FROM stdin;
+\.
+
+
+--
+-- TOC entry 3578 (class 0 OID 16490)
+-- Dependencies: 253
+-- Data for Name: paradas; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.paradas (id, start, stop, camera_name_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3580 (class 0 OID 16494)
+-- Dependencies: 255
+-- Data for Name: planned_downtime; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.planned_downtime (id, "user", planned_downtime_id, paradas_id, observacoes, "timestamp") FROM stdin;
+\.
+
+
+--
+-- TOC entry 3582 (class 0 OID 16501)
+-- Dependencies: 257
+-- Data for Name: planned_downtime_setup; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.planned_downtime_setup (id, name, start_time, stop_time, camera_name_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3584 (class 0 OID 16507)
+-- Dependencies: 259
+-- Data for Name: unplanned_downtime; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.unplanned_downtime (id, "user", unplanned_downtime_id, paradas_id, observacoes, "timestamp") FROM stdin;
+\.
+
+
+--
+-- TOC entry 3586 (class 0 OID 16514)
+-- Dependencies: 261
+-- Data for Name: unplanned_downtime_setup; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.unplanned_downtime_setup (id, name) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3603 (class 0 OID 0)
+-- Dependencies: 219
+-- Name: BatchId_ID_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."BatchId_ID_seq"', 1, false);
+
+
+--
+-- TOC entry 3604 (class 0 OID 0)
+-- Dependencies: 221
+-- Name: Dispositivos_ID_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."Dispositivos_ID_seq"', 3, true);
+
+
+--
+-- TOC entry 3605 (class 0 OID 0)
+-- Dependencies: 223
+-- Name: EnderecosComunicacao_ID_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."EnderecosComunicacao_ID_seq"', 2, true);
+
+
+--
+-- TOC entry 3606 (class 0 OID 0)
+-- Dependencies: 226
+-- Name: NivelAcesso_ID_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."NivelAcesso_ID_seq"', 6, false);
+
+
+--
+-- TOC entry 3607 (class 0 OID 0)
+-- Dependencies: 228
+-- Name: ParametrosRejeito_ID_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."ParametrosRejeito_ID_seq"', 3, false);
+
+
+--
+-- TOC entry 3608 (class 0 OID 0)
+-- Dependencies: 230
+-- Name: ParametrosShift_ID_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."ParametrosShift_ID_seq"', 9, false);
+
+
+--
+-- TOC entry 3609 (class 0 OID 0)
+-- Dependencies: 232
+-- Name: PermissoesExecDispositivos_ID_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."PermissoesExecDispositivos_ID_seq"', 24, true);
+
+
+--
+-- TOC entry 3610 (class 0 OID 0)
+-- Dependencies: 234
+-- Name: PermissoesNauta_ID_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."PermissoesNauta_ID_seq"', 181, true);
+
+
+--
+-- TOC entry 3611 (class 0 OID 0)
+-- Dependencies: 236
+-- Name: PermissoesQuery_ID_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."PermissoesQuery_ID_seq"', 40, true);
+
+
+--
+-- TOC entry 3612 (class 0 OID 0)
+-- Dependencies: 238
+-- Name: PermissoesShift_ID_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."PermissoesShift_ID_seq"', 85, true);
+
+
+--
+-- TOC entry 3613 (class 0 OID 0)
+-- Dependencies: 240
+-- Name: Produtos_ID_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."Produtos_ID_seq"', 4, true);
+
+
+--
+-- TOC entry 3614 (class 0 OID 0)
+-- Dependencies: 242
+-- Name: ReqSenha_ID_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."ReqSenha_ID_seq"', 6, false);
+
+
+--
+-- TOC entry 3615 (class 0 OID 0)
+-- Dependencies: 244
+-- Name: Usuarios_ID_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."Usuarios_ID_seq"', 5, true);
+
+
+--
+-- TOC entry 3616 (class 0 OID 0)
+-- Dependencies: 246
+-- Name: auto_oee_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.auto_oee_id_seq', 1, false);
+
+
+--
+-- TOC entry 3617 (class 0 OID 0)
+-- Dependencies: 248
+-- Name: data_received_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.data_received_id_seq', 1, false);
+
+
+--
+-- TOC entry 3618 (class 0 OID 0)
+-- Dependencies: 250
+-- Name: digest_data_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.digest_data_id_seq', 1821, true);
+
+
+--
+-- TOC entry 3619 (class 0 OID 0)
+-- Dependencies: 252
+-- Name: oee_setup_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.oee_setup_id_seq', 1, true);
+
+
+--
+-- TOC entry 3620 (class 0 OID 0)
+-- Dependencies: 254
+-- Name: paradas_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.paradas_id_seq', 30, true);
+
+
+--
+-- TOC entry 3621 (class 0 OID 0)
+-- Dependencies: 256
+-- Name: planned_downtime_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.planned_downtime_id_seq', 4, true);
+
+
+--
+-- TOC entry 3622 (class 0 OID 0)
+-- Dependencies: 258
+-- Name: planned_downtime_setup_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.planned_downtime_setup_id_seq', 9, true);
+
+
+--
+-- TOC entry 3623 (class 0 OID 0)
+-- Dependencies: 260
+-- Name: unplanned_downtime_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.unplanned_downtime_id_seq', 3, true);
+
+
+--
+-- TOC entry 3624 (class 0 OID 0)
+-- Dependencies: 262
+-- Name: unplanned_downtime_setup_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.unplanned_downtime_setup_id_seq', 7, true);
+
+
+--
+-- TOC entry 3341 (class 2606 OID 16531)
+-- Name: BatchId BatchId_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."BatchId"
+    ADD CONSTRAINT "BatchId_pkey" PRIMARY KEY ("ID");
+
+
+--
+-- TOC entry 3343 (class 2606 OID 16533)
+-- Name: Dispositivos Dispositivos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Dispositivos"
+    ADD CONSTRAINT "Dispositivos_pkey" PRIMARY KEY ("ID");
+
+
+--
+-- TOC entry 3345 (class 2606 OID 16535)
+-- Name: EnderecosComunicacao EnderecosComunicacao_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."EnderecosComunicacao"
+    ADD CONSTRAINT "EnderecosComunicacao_pkey" PRIMARY KEY ("ID");
+
+
+--
+-- TOC entry 3347 (class 2606 OID 16537)
+-- Name: NivelAcesso NivelAcesso_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."NivelAcesso"
+    ADD CONSTRAINT "NivelAcesso_pkey" PRIMARY KEY ("ID");
+
+
+--
+-- TOC entry 3349 (class 2606 OID 16539)
+-- Name: ParametrosRejeito ParametrosRejeito_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."ParametrosRejeito"
+    ADD CONSTRAINT "ParametrosRejeito_pkey" PRIMARY KEY ("ID");
+
+
+--
+-- TOC entry 3351 (class 2606 OID 16541)
+-- Name: ParametrosShift ParametrosShift_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."ParametrosShift"
+    ADD CONSTRAINT "ParametrosShift_pkey" PRIMARY KEY ("ID");
+
+
+--
+-- TOC entry 3353 (class 2606 OID 16543)
+-- Name: PermissoesExecDispositivos PermissoesExecDispositivos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."PermissoesExecDispositivos"
+    ADD CONSTRAINT "PermissoesExecDispositivos_pkey" PRIMARY KEY ("ID");
+
+
+--
+-- TOC entry 3355 (class 2606 OID 16545)
+-- Name: PermissoesNauta PermissoesNauta_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."PermissoesNauta"
+    ADD CONSTRAINT "PermissoesNauta_pkey" PRIMARY KEY ("ID");
+
+
+--
+-- TOC entry 3357 (class 2606 OID 16547)
+-- Name: PermissoesQuery PermissoesQuery_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."PermissoesQuery"
+    ADD CONSTRAINT "PermissoesQuery_pkey" PRIMARY KEY ("ID");
+
+
+--
+-- TOC entry 3359 (class 2606 OID 16549)
+-- Name: PermissoesShift PermissoesShift_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."PermissoesShift"
+    ADD CONSTRAINT "PermissoesShift_pkey" PRIMARY KEY ("ID");
+
+
+--
+-- TOC entry 3361 (class 2606 OID 16551)
+-- Name: Produtos Produtos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Produtos"
+    ADD CONSTRAINT "Produtos_pkey" PRIMARY KEY ("ID");
+
+
+--
+-- TOC entry 3363 (class 2606 OID 16553)
+-- Name: ReqSenha ReqSenha_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."ReqSenha"
+    ADD CONSTRAINT "ReqSenha_pkey" PRIMARY KEY ("ID");
+
+
+--
+-- TOC entry 3365 (class 2606 OID 16555)
+-- Name: Usuarios Usuarios_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Usuarios"
+    ADD CONSTRAINT "Usuarios_pkey" PRIMARY KEY ("ID");
+
+
+--
+-- TOC entry 3367 (class 2606 OID 16557)
+-- Name: auto_oee auto_oee_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.auto_oee
+    ADD CONSTRAINT auto_oee_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3369 (class 2606 OID 16559)
+-- Name: data_received data_received_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.data_received
+    ADD CONSTRAINT data_received_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3371 (class 2606 OID 16561)
+-- Name: digest_data digest_data_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.digest_data
+    ADD CONSTRAINT digest_data_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3373 (class 2606 OID 16563)
+-- Name: oee_setup oee_setup_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.oee_setup
+    ADD CONSTRAINT oee_setup_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3375 (class 2606 OID 16565)
+-- Name: paradas paradas_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.paradas
+    ADD CONSTRAINT paradas_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3377 (class 2606 OID 16567)
+-- Name: planned_downtime planned_downtime_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.planned_downtime
+    ADD CONSTRAINT planned_downtime_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3379 (class 2606 OID 16569)
+-- Name: planned_downtime_setup planned_downtime_setup_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.planned_downtime_setup
+    ADD CONSTRAINT planned_downtime_setup_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3381 (class 2606 OID 16571)
+-- Name: unplanned_downtime unplanned_downtime_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.unplanned_downtime
+    ADD CONSTRAINT unplanned_downtime_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3383 (class 2606 OID 16573)
+-- Name: unplanned_downtime_setup unplanned_downtime_setup_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.unplanned_downtime_setup
+    ADD CONSTRAINT unplanned_downtime_setup_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3387 (class 2606 OID 16574)
+-- Name: PermissoesExecDispositivos Dispositivos_IDFK; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."PermissoesExecDispositivos"
+    ADD CONSTRAINT "Dispositivos_IDFK" FOREIGN KEY ("Dispositivos_ID") REFERENCES public."Dispositivos"("ID") ON DELETE CASCADE NOT VALID;
+
+
+--
+-- TOC entry 3392 (class 2606 OID 16579)
+-- Name: Usuarios NivelAcessoUsuario_IDFK; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Usuarios"
+    ADD CONSTRAINT "NivelAcessoUsuario_IDFK" FOREIGN KEY ("NivelAcesso_ID") REFERENCES public."NivelAcesso"("ID") ON DELETE CASCADE NOT VALID;
+
+
+--
+-- TOC entry 3388 (class 2606 OID 16584)
+-- Name: PermissoesExecDispositivos NivelAcesso_IDFK; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."PermissoesExecDispositivos"
+    ADD CONSTRAINT "NivelAcesso_IDFK" FOREIGN KEY ("NivelAcesso_ID") REFERENCES public."NivelAcesso"("ID") ON DELETE CASCADE NOT VALID;
+
+
+--
+-- TOC entry 3391 (class 2606 OID 16589)
+-- Name: PermissoesShift NivelAcesso_IDFK; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."PermissoesShift"
+    ADD CONSTRAINT "NivelAcesso_IDFK" FOREIGN KEY ("NivelAcesso_ID") REFERENCES public."NivelAcesso"("ID") ON DELETE CASCADE NOT VALID;
+
+
+--
+-- TOC entry 3390 (class 2606 OID 16594)
+-- Name: PermissoesQuery NivelAcesso_IDFK; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."PermissoesQuery"
+    ADD CONSTRAINT "NivelAcesso_IDFK" FOREIGN KEY ("NivelAcesso_ID") REFERENCES public."NivelAcesso"("ID") ON DELETE CASCADE NOT VALID;
+
+
+--
+-- TOC entry 3389 (class 2606 OID 16599)
+-- Name: PermissoesNauta NivelAcesso_IDFK; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."PermissoesNauta"
+    ADD CONSTRAINT "NivelAcesso_IDFK" FOREIGN KEY ("NivelAcesso_ID") REFERENCES public."NivelAcesso"("ID") ON DELETE CASCADE NOT VALID;
+
+
+--
+-- TOC entry 3385 (class 2606 OID 16604)
+-- Name: ParametrosShift ParametrosRejeito_IDFK; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."ParametrosShift"
+    ADD CONSTRAINT "ParametrosRejeito_IDFK" FOREIGN KEY ("ParametrosRejeito_ID") REFERENCES public."ParametrosRejeito"("ID") ON DELETE CASCADE NOT VALID;
+
+
+--
+-- TOC entry 3386 (class 2606 OID 16609)
+-- Name: ParametrosShift Produtos_IDFK; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."ParametrosShift"
+    ADD CONSTRAINT "Produtos_IDFK" FOREIGN KEY ("Produtos_ID") REFERENCES public."Produtos"("ID") ON DELETE CASCADE NOT VALID;
+
+
+--
+-- TOC entry 3384 (class 2606 OID 16614)
+-- Name: NivelAcesso ReqSenha_IDFK; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."NivelAcesso"
+    ADD CONSTRAINT "ReqSenha_IDFK" FOREIGN KEY ("ReqSenha_ID") REFERENCES public."ReqSenha"("ID") ON DELETE CASCADE NOT VALID;
+
+
+--
+-- TOC entry 3393 (class 2606 OID 16619)
+-- Name: planned_downtime planned_downtime_paradas_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.planned_downtime
+    ADD CONSTRAINT planned_downtime_paradas_id_fkey FOREIGN KEY (paradas_id) REFERENCES public.paradas(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 3394 (class 2606 OID 16624)
+-- Name: planned_downtime planned_downtime_planned_downtime_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.planned_downtime
+    ADD CONSTRAINT planned_downtime_planned_downtime_id_fkey FOREIGN KEY (planned_downtime_id) REFERENCES public.planned_downtime_setup(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 3395 (class 2606 OID 16629)
+-- Name: unplanned_downtime unplanned_downtime_paradas_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.unplanned_downtime
+    ADD CONSTRAINT unplanned_downtime_paradas_id_fkey FOREIGN KEY (paradas_id) REFERENCES public.paradas(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 3396 (class 2606 OID 16634)
+-- Name: unplanned_downtime unplanned_downtime_unplanned_downtime_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.unplanned_downtime
+    ADD CONSTRAINT unplanned_downtime_unplanned_downtime_id_fkey FOREIGN KEY (unplanned_downtime_id) REFERENCES public.unplanned_downtime_setup(id) ON DELETE CASCADE;
+
+
+-- Completed on 2025-05-01 13:39:11 UTC
+
+--
+-- PostgreSQL database dump complete
+--
+

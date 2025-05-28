@@ -27,7 +27,7 @@ def str_para_time(hora_str: str) -> time:
     return datetime.strptime(hora_str, '%H:%M').time()
 
 class ServicoOEE:
-    def __init__(self, intervalo: float = 60.0, db: AsyncSession = None):#, db: AsyncSession = Depends(get_db)):      
+    def __init__(self, intervalo: float = 10.0, db: AsyncSession = None):#, db: AsyncSession = Depends(get_db)):      
         self._running = False
         self._interval = intervalo  # segundos entre cada verificação
         self.db_session = db
@@ -114,12 +114,12 @@ class ServicoOEE:
                             if parada_time_control > self._digest_time[camera_id]:
                                 await self.process_parada(camera_id, start=last_parada)
                         else:'''
-                        await self.process_parada(camera_id)
+                        #await self.process_parada(camera_id)
 
                         # AUTOOEE calculado uma vez por dia
-                        if self.last_calculated_date != agora.date():
-                            await self.process_autooee(camera_id)
-                            self.last_calculated_date = agora.date()
+                        #if self.last_calculated_date != agora.date():
+                        #    await self.process_autooee(camera_id)
+                        #    self.last_calculated_date = agora.date()
                     
                 # Espera um intervalo até a próxima análise        
                 await asyncio.sleep(self._interval)
@@ -140,15 +140,16 @@ class ServicoOEE:
         """ chama a partir de no mímino um periodo mínimo de self._digest_time[camera_id]
             mas se não hover produção será um período maior
         """        
+        print(f"processando digest data camera: {camera_id} start {start} end {end}")
         if start != None:
-            resultados = fetch_digest_data_from_datareceived(
+            resultados = await fetch_digest_data_from_datareceived(
                 CAMERA_NAME_ID=camera_id,
                 DIGEST_TIME=self._cache_setupoee[camera_id].digest_time, 
                 START_ANALISE=start, # datetime "'2025-03-24 16:23:00'",
                 STOP_ANALISE=end
                 )
         else:
-            resultados = fetch_all_digest_data_from_datareceived(
+            resultados = await fetch_all_digest_data_from_datareceived(
                 CAMERA_NAME_ID=camera_id, 
                 DIGEST_TIME=self._cache_setupoee[camera_id].digest_time
                 )

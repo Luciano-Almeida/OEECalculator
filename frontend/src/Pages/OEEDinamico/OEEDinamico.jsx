@@ -52,14 +52,10 @@ const OEEDinamico = () => {
   // Calcula peças por minuto real
   const velocidade_real = Math.round(responseData['H_Total_pecas_produzidas'] / (timeStringToSeconds(responseData['F_Tempo_operando(D-E)']) / 60))
 
-  const sampleData = [
-    { nome: "", produzido: 120, planejado: 100 },
-  ];
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
-        <div style={{ display: 'flex', width: '35%', marginLeft: '40px', flexDirection: 'column', justifyContent: 'space-between'}}>
+        <div style={{ display: 'flex', marginLeft: '40px', flexDirection: 'column', justifyContent: 'space-between'}}>
           {/* Quantidade produzida */}
           <div style={{ width: '100%', marginTop: '10px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '10px', boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)' }}>
             <h3 style={{ textAlign: 'center' }}>Produção (unidades)</h3>
@@ -100,9 +96,7 @@ const OEEDinamico = () => {
           {/* Disponibilidade, Desempenho, Qualidade */}
           <div style={{
             display: 'flex',
-            flexWrap: 'wrap',
             justifyContent: 'center',
-            gap: '30px',
             width: '100%'
           }}>
             {[
