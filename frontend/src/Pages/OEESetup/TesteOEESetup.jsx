@@ -4,10 +4,8 @@ import ShiftForm from './ShiftForm';
 import ShiftList from './ShiftList';
 
 const cameraOptions = [
-  { id: 1, name: 'Câmera 1' },
+  //{ id: 1, name: 'Câmera 1' },
   { id: 2, name: 'Câmera 2' },
-  { id: 3, name: 'Câmera 3' },
-  { id: 4, name: 'Câmera 4' },
 ];
 
 const TesteOEESetup = () => {

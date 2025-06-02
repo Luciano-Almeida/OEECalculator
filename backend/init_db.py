@@ -46,7 +46,7 @@ async def init_db():
                 stop_time = 60.0  # 60 segundos
                 line_speed = 120  # 120 unidades por minuto
                 digest_time = 60.0 # 60 segundos entre cada resumo 
-                camera_name_id = 1  # ID da câmera
+                camera_name_id = 2  # ID da câmera
                 #await crud.create_oee_setup(db, )
                 oee_setup = await crud.create_oee_setup(
                     db=db, 
@@ -59,20 +59,21 @@ async def init_db():
                         {
                         #"shift_id": 1,
                         "name": "Manhã",
-                        "days": ["Segunda", "Terça"],
+                        "days": ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'],
                         "startTime": "08:00",
                         "endTime": "14:00"
                         },
                         {
                         #"shift_id": 2,
                         "name": "Noite",
-                        "days": ["Segunda", "Terça"],
+                        "days": ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'],
                         "startTime": "14:00",
                         "endTime": "19:00"
                         }
                     ]
                 )
                 print("✅ Dados iniciais inseridos na tabela setupOEE!")
+
 
                 # Insere um DigestData Inicial
                 

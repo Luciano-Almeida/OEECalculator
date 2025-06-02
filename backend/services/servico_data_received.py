@@ -1,4 +1,6 @@
 import datetime
+
+from sqlalchemy import text
 from .external_database_connection import ExternalDatabaseConnection
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
@@ -50,13 +52,13 @@ def fetch_paradas_after_init_date(INIT = '2024-12-01 00:00:00', PARADA_TIME_STOP
 
 
 async def fetch_digest_data_from_datareceived(
-                                            CAMERA_NAME_ID=1, 
+                                            db: AsyncSession,
+                                            CAMERA_NAME_ID, 
                                             DIGEST_TIME=60, 
                                             START_ANALISE="'2025-03-13 08:00:00'",
-                                            STOP_ANALISE = "'2025-04-1 13:00:00'",
-                                            db: AsyncSession = Depends(get_external_db)
+                                            STOP_ANALISE = datetime.datetime.now()#"'2025-04-1 13:00:00'",                                            
                                             ):
-    print(f'Fetch Digest data from DataReceived from camera {CAMERA_NAME_ID} and Period {START_ANALISE} to {STOP_ANALISE}')
+    print(f'Fetch Digest data from data_received from camera {CAMERA_NAME_ID} and Period {START_ANALISE} to {STOP_ANALISE}')
 
     # Convertendo as strings de data para objetos datetime
     #start_time = datetime.datetime.strptime(START_ANALISE.strip("'"), "%Y-%m-%d %H:%M:%S")
@@ -79,7 +81,7 @@ async def fetch_digest_data_from_datareceived(
     current_time = start_time
 
     resultados = []
-    batch = 10    # limita a quantidade de linhas enviadas, no caso de longos periodos 
+    batch = 100    # limita a quantidade de linhas enviadas, no caso de longos periodos 
 
     while current_time < stop_time:
         # Formatar o intervalo de tempo como uma string no formato necessário
@@ -87,13 +89,15 @@ async def fetch_digest_data_from_datareceived(
         formatted_end_time = f"'{(current_time + digest_delta).strftime('%Y-%m-%d %H:%M:%S')}'"
         
         # Criando a consulta com o intervalo de tempo atualizado
-        query_digest = f'''
-        SELECT "LoteId", "CameraId", COUNT(CASE WHEN "OK/NOK" = true THEN 1 END) AS total_ok,
-        COUNT(CASE WHEN "OK/NOK" = false THEN 1 END) AS total_nok
-        FROM "DataReceived"
-        WHERE "TimeStamp" BETWEEN {formatted_start_time} AND {formatted_end_time}
-        GROUP BY "LoteId", "CameraId";
-        '''
+        query_digest = text("""
+        SELECT "lote_id", "camera_name_id", 
+            COUNT(CASE WHEN "ok_nok" = 1 THEN 1 END) AS total_ok,
+            COUNT(CASE WHEN "ok_nok" = 0 THEN 1 END) AS total_nok
+        FROM "data_received"
+        WHERE "timestamp" BETWEEN :start_time AND :end_time AND "camera_name_id" = :camera_name_id
+        GROUP BY "lote_id", "camera_name_id";
+        """)
+
         
         # Aqui você pode adicionar a lógica para executar a consulta `query_digest`
         #print("query_digest", query_digest)  # Para visualizar a query gerada (remover ou ajustar conforme necessário)
@@ -101,9 +105,15 @@ async def fetch_digest_data_from_datareceived(
         try:
             # Executando a consulta (substitua 'external_db.execute_query' pela função real de execução)
             #resultado = external_db.execute_query(query_digest)
-            resultado = await db.execute(query_digest)
-            resultado = resultado.scalars().all()
-            print("*****resultado", resultado)
+            resultado = await db.execute(
+            query_digest,
+            {
+                "start_time": current_time,
+                "end_time": current_time + digest_delta,
+                "camera_name_id": CAMERA_NAME_ID
+            }
+            )
+            resultado = resultado.fetchall()
         except Exception as e:
             print("❌ Erro ao executar query no fetch digest:", str(e))
             raise e
@@ -113,12 +123,13 @@ async def fetch_digest_data_from_datareceived(
             resultado.append(formatted_start_time)
             resultado.append(formatted_end_time)
             resultados.append(resultado)
-            print(f'com resultado {batch} {resultado}')
+            #print(f'com resultado {batch} {resultado}')
             batch -= 1
             if batch <= 0:
                 return resultados
         else:
-            print("sem resultado", resultado)
+            pass
+            #print("sem resultado", resultado)
         
         # Avançar o tempo para a próxima iteração
         current_time += digest_delta
@@ -126,51 +137,69 @@ async def fetch_digest_data_from_datareceived(
     return resultados
 
 
-def fetch_all_digest_data_from_datareceived(CAMERA_NAME_ID=1, DIGEST_TIME=60):
+async def fetch_all_digest_data_from_datareceived(
+    db: AsyncSession,
+    CAMERA_NAME_ID, 
+    DIGEST_TIME=240
+    ):
     # Consulta para pegar o intervalo total de tempo no banco externo
-    print(f'Fetch ALL Digest data from DataReceived from camera {CAMERA_NAME_ID} and Period {DIGEST_TIME}')
+    print(f'Fetch ALL Digest data from data_received from camera {CAMERA_NAME_ID} and Period {DIGEST_TIME}')
     
-    query_limits = '''
-    SELECT MIN("TimeStamp") AS min_time, MAX("TimeStamp") AS max_time FROM "DataReceived";
-    '''
-    limits_result = external_db.execute_query(query_limits)
-
-    if not limits_result or not limits_result[0][0] or not limits_result[0][1]:
+    query_limits = text("""
+    SELECT MIN("timestamp") AS min_time, MAX("timestamp") AS max_time FROM "data_received";
+    """)
+    #limits_result = external_db.execute_query(query_limits)
+    resultado = await db.execute(query_limits)
+    limits_result = resultado.fetchone()
+    print("limits_result", limits_result)
+    start_time, stop_time = limits_result
+    if not start_time or not stop_time:
         print("Não foi possível obter o intervalo de tempo do banco externo.")
         return []
-
-    # Convertendo os limites retornados em datetime
-    start_time = limits_result[0][0]
-    stop_time = limits_result[0][1]
     
     # Convertendo o tempo de digest para um intervalo de tempo (timedelta)
     digest_delta = datetime.timedelta(seconds=DIGEST_TIME)
     current_time = start_time
 
     resultados = []
+    batch = 100    # limita a quantidade de linhas enviadas, no caso de longos periodos
 
     while current_time < stop_time:
         formatted_start_time = f"'{current_time.strftime('%Y-%m-%d %H:%M:%S')}'"
         formatted_end_time = f"'{(current_time + digest_delta).strftime('%Y-%m-%d %H:%M:%S')}'"
         
-        query_digest = f'''
-        SELECT "LoteId", "CameraId", 
-               COUNT(CASE WHEN "OK/NOK" = true THEN 1 END) AS total_ok,
-               COUNT(CASE WHEN "OK/NOK" = false THEN 1 END) AS total_nok
-        FROM "DataReceived"
-        WHERE "TimeStamp" BETWEEN {formatted_start_time} AND {formatted_end_time}
-        GROUP BY "LoteId", "CameraId";
-        '''
-        #print('*****query_digest', query_digest)
-        resultado = external_db.execute_query(query_digest)
+        query_digest = text("""
+            SELECT "lote_id", "camera_name_id", 
+                COUNT(CASE WHEN "ok_nok" = 1 THEN 1 END) AS total_ok,
+                COUNT(CASE WHEN "ok_nok" = 0 THEN 1 END) AS total_nok
+            FROM "data_received"
+            WHERE "timestamp" BETWEEN :start_time AND :end_time AND "camera_name_id" = :camera_name_id
+            GROUP BY "lote_id", "camera_name_id";
+        """)
+
+        resultado = await db.execute(
+            query_digest,
+            {
+                "start_time": current_time,
+                "end_time": current_time + digest_delta,
+                "camera_name_id": CAMERA_NAME_ID
+            }
+        )
+        resultado = resultado.fetchall()
+        #print("query", formatted_start_time, formatted_end_time)
+        #print("*****resultado", resultado)
+        #print("camera id", CAMERA_NAME_ID)
 
         if resultado:
             resultado.append(formatted_start_time)
             resultado.append(formatted_end_time)
             resultados.append(resultado)
-            print('com resultado', resultado)
-            return resultados
+            #print('com resultado', resultado)
+            batch -= 1
+            if batch <= 0:
+                return resultados
         else:
+            pass
             print("sem resultado", resultado)
         
         current_time += digest_delta
@@ -179,22 +208,34 @@ def fetch_all_digest_data_from_datareceived(CAMERA_NAME_ID=1, DIGEST_TIME=60):
 
 
 
-def get_last_timestamp_from_dataReceived_by_camera_id(CAMERA_NAME_ID) -> datetime:
+
+async def get_last_timestamp_from_dataReceived_by_camera_id(  
+                                                            db: AsyncSession,                                                          
+                                                            CAMERA_NAME_ID: int
+                                                            ):
     """ 
         Construindo a query para buscar o último TimeStamp da câmera fornecida
     """
 
-    query = f'''
-    SELECT "TimeStamp" 
-    FROM "DataReceived"
-    ORDER BY "TimeStamp" DESC
+    query = text("""
+    SELECT "timestamp" 
+    FROM "data_received"
+    WHERE "camera_name_id" = :camera_name_id
+    ORDER BY "timestamp" DESC
     LIMIT 1;
-    '''
+    """)
 
     try:
         # Executando a query
-        resultado = external_db.execute_query(query)
-
+        #resultado = external_db.execute_query(query)
+        resultado = await db.execute(
+            query,
+            {
+                "camera_name_id": CAMERA_NAME_ID
+            }
+        )
+        resultado = resultado.fetchall()
+        print("último TimeStamp da câmera fornecida", resultado)
         # Verificando e retornando o resultado
         if resultado:
             return resultado[0][0]

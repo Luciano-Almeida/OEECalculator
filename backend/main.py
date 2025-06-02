@@ -9,6 +9,7 @@ from routers import api_router  # Importa o roteador centralizado
 from typing import Dict, List
 
 from database.db import get_db
+from database.db.conexao_db_externo import get_external_db
 from utils import parada_nao_planejada, producao, start_end_times
 
 from init_db import init_db
@@ -28,11 +29,12 @@ async def lifespan(app: FastAPI):
 
     # Injeta uma sessão de banco no serviço
     
-    # Cria o serviço OEE já com o db
-    async for db in get_db():
-        #servico_oee.set_db(db)
-        servico_oee = ServicoOEE(db=db)
-        break  # Pega uma sessão apenas
+    # Cria o serviço OEE já com os bancos
+    async for external_db in get_external_db():
+        async for db in get_db():
+            servico_oee = ServicoOEE(db=db, db_external=external_db)
+            break  # Pega uma sessão apenas
+        break
 
     # Inicia o serviço em segundo plano
     task = asyncio.create_task(servico_oee.iniciar())

@@ -5,6 +5,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.db import get_db
+from database.db.conexao_db_externo import get_external_db
 import database.crud as crud
 from database.models import AutoOEE, OEESetup, DigestData, PlannedDowntimeSetup
 import schemas as schemas
@@ -27,10 +28,11 @@ def str_para_time(hora_str: str) -> time:
     return datetime.strptime(hora_str, '%H:%M').time()
 
 class ServicoOEE:
-    def __init__(self, intervalo: float = 10.0, db: AsyncSession = None):#, db: AsyncSession = Depends(get_db)):      
+    def __init__(self, intervalo: float = 10.0, db_external: AsyncSession = None, db: AsyncSession = None):#, db: AsyncSession = Depends(get_db)):      
         self._running = False
         self._interval = intervalo  # segundos entre cada verificação
         self.db_session = db
+        self.db_external = db_external
         self.last_calculated_date = None
         
         #self._cache_shifts_por_camera: Dict[int, schemas.Shift]
@@ -71,7 +73,7 @@ class ServicoOEE:
             except Exception as e:
                 print(f"[camera_id:{camera_id}] Erro ao iniciar cache de dados: {e}")
         
-        #await self.running()
+        await self.running()
 
     async def running(self):
         try:
@@ -91,7 +93,7 @@ class ServicoOEE:
                         print(f"running camera {camera_id}")
 
                         # read last timestamp from dataReceived
-                        last_data_received = get_last_timestamp_from_dataReceived_by_camera_id(camera_id)
+                        last_data_received = await get_last_timestamp_from_dataReceived_by_camera_id(db=self.db_external, CAMERA_NAME_ID=camera_id)
                         intervalo_ate_ultimo_data_received = agora - last_data_received
                         #print("last data_received timestamp", last_data_received)
 
@@ -114,7 +116,7 @@ class ServicoOEE:
                             if parada_time_control > self._digest_time[camera_id]:
                                 await self.process_parada(camera_id, start=last_parada)
                         else:'''
-                        #await self.process_parada(camera_id)
+                        await self.process_parada(camera_id)
 
                         # AUTOOEE calculado uma vez por dia
                         #if self.last_calculated_date != agora.date():
@@ -143,6 +145,7 @@ class ServicoOEE:
         print(f"processando digest data camera: {camera_id} start {start} end {end}")
         if start != None:
             resultados = await fetch_digest_data_from_datareceived(
+                db=self.db_external, 
                 CAMERA_NAME_ID=camera_id,
                 DIGEST_TIME=self._cache_setupoee[camera_id].digest_time, 
                 START_ANALISE=start, # datetime "'2025-03-24 16:23:00'",
@@ -150,13 +153,14 @@ class ServicoOEE:
                 )
         else:
             resultados = await fetch_all_digest_data_from_datareceived(
+                db=self.db_external,
                 CAMERA_NAME_ID=camera_id, 
                 DIGEST_TIME=self._cache_setupoee[camera_id].digest_time
                 )
 
         for row in resultados:
             # Extrair valores de cada linha de resultado
-            print('###### row', row)
+            #print('###### row', row)
             lote_id = row[0][0]  # row["LoteId"]  # Ajuste conforme o formato do seu resultado
             camera_name_id = row[0][1]  # row["CameraId"]  # Ajuste conforme o formato do seu resultado
             ok = row[0][2]  # row["total_ok"]
@@ -177,7 +181,7 @@ class ServicoOEE:
     async def process_parada(self, camera_id: int):
         ultima_analise_de_parada = self._cache_parada[camera_id]
         stop_time = timedelta(seconds=self._cache_setupoee[camera_id].stop_time)  # tempo sem produção considerado como parada
-        print('stop_time', stop_time)
+        #print('stop_time', stop_time)
         digest = []
         if ultima_analise_de_parada is None:
             print("!!!!!!!!!ultima_analise_de_parada", ultima_analise_de_parada)
@@ -312,7 +316,7 @@ class ServicoOEE:
         
     def _listar_cameras(self) -> List:
             # Retorne a lista de ID's de câmeras do banco
-            return [1]
+            return [2]
     
     async def _carregar_setup_parada_planejada(self, camera_id):
         """
