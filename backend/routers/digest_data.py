@@ -10,6 +10,9 @@ import schemas as schemas
 
 from database.crud import create_parada
 
+from services.servico_data_received import fetch_digest_data_from_datareceived, fetch_all_digest_data_from_datareceived, get_last_timestamp_from_dataReceived_by_camera_id
+from database.db.conexao_db_externo import get_external_db
+
 router = APIRouter()
 
 # 📌 GET
@@ -20,7 +23,35 @@ async def get_digest(db: AsyncSession = Depends(get_db)):
     """
     return await crud.get_all_digest_data(db)
 
+@router.get("/digest_filtered_by_period/", response_model=List[schemas.DigestDataSchema])
+async def get_digest_filtered_by_period(
+    inicio: datetime, 
+    fim: datetime, 
+    camera_name_id: int, 
+    db: AsyncSession = Depends(get_db)
+    ):
+    """
+    Retorna uma lista com todas os dados
+    """
+    return await crud.get_digest_data_filtered_by_period_and_cameraId(db, inicio, fim, camera_name_id)
 
+@router.get("/teste_fetch_digest/")
+async def teste_fetch_digest(
+    inicio: datetime, 
+    fim: datetime, 
+    camera_name_id: int, 
+    digest_time: int=120,
+    db_external: AsyncSession = Depends(get_external_db)
+    ):
+    resultados = await fetch_digest_data_from_datareceived(
+                db=db_external, 
+                CAMERA_NAME_ID=camera_name_id,
+                DIGEST_TIME=digest_time, 
+                START_ANALISE=inicio, # datetime "'2025-06-09 10:00:43'",
+                STOP_ANALISE=fim
+                )
+    print('resultados', resultados)
+    return {'resultados': resultados}
 
 # 📌 POST
 @router.post("/create_digest/")

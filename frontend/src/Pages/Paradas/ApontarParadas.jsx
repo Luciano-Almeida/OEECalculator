@@ -21,7 +21,8 @@ import { checkAndFormatTimes } from './timeUtils';
 import DatePicker from 'react-datepicker'; // Biblioteca de Data
 
 import './ApontarParadas.css';
-import Teste from '../teste';
+import Teste from './teste';
+import { useDataInicioFim } from '../../Components/useDataInicioFim';
 
 
 const { Option } = Select;
@@ -40,15 +41,19 @@ const ApontarParadas = () => {
 
   const [selectedParada, setSelectedParada] = useState(paradas[0]);
   */
-  const [cameraId, setCameraId] = useState(1);
-  const [inicio, setInicio] = useState('2025-03-14 08:00:00');
-  const [fim, setFim] = useState("2025-04-01 17:00:00");
+  const [cameraId, setCameraId] = useState(Number(import.meta.env.VITE_CAMERA_DEFAULT) || 1);
+  //const [fim, setFim] = useState("2025-04-01 17:00:00");
+  const { inicio, setInicio, fim, setFim } = useDataInicioFim();
   const [paradas, setParadas] = useState([]);
   const [paradasNaoPlanejadasTypes, setParadasNaoPlanejadasTypes] = useState([]);
   const [paradasPlanejadasTypes, setParadasPlanejadasTypes] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedParada, setSelectedParada] = useState("");
 
+  // Carregar as câmeras do arquivo .env
+  const cameras = import.meta.env.VITE_CAMERAS ? import.meta.env.VITE_CAMERAS.split(',') : [];
+
+  
 
   const buscarParadas = async () => {
     if (new Date(inicio) >= new Date(fim)) {
@@ -145,13 +150,25 @@ const ApontarParadas = () => {
       console.error("Erro ao carregar paradas planejadas", error);
     }
   };
-
+  /*
   useEffect(() => {
     fetchParadasNaoPlanejadasSetup();
     fetchParadasPlanejadasSetup();
     buscarParadas();
     
   }, [])
+  */
+ 
+  useEffect(() => {
+    fetchParadasNaoPlanejadasSetup();
+    fetchParadasPlanejadasSetup();
+  }, []);
+  
+  useEffect(() => {
+    if (inicio && fim) {
+      buscarParadas();
+    }
+  }, [inicio, fim]);
 
   return (
     <div>
@@ -186,13 +203,15 @@ const ApontarParadas = () => {
             <div style={{ display: 'flex', gap: '10px' }}>
               <label>Câmera:</label>
               <Select
-                defaultValue={cameraId}
-                onChange={(value) => setCameraId(value)}
-              >
-                <Option value={1}>Câmera 1</Option>
-                <Option value={2}>Câmera 2</Option>
-                <Option value={3}>Câmera 3</Option>
-              </Select>
+                  value={cameraId}
+                  onChange={(value) => setCameraId(value)}
+                >
+                  {cameras.map((camera) => (
+                    <Option key={camera} value={camera}>
+                      {`${camera}`}
+                    </Option>
+                  ))}
+                </Select>
             </div>
           </div>
         </div>

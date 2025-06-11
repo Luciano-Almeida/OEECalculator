@@ -72,6 +72,51 @@ async def filtrar_paradas(
 async def get_paradas_planejadas(db: AsyncSession = Depends(get_db)):
     return await crud.get_all_planned_downtime(db)
 
+@router.get("/get-seconds-paradas/")
+async def get_seconds_paradas(
+    inicio: datetime,
+    fim: datetime,
+    camera_name_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        # Chama a função para calcular o total de downtime planejado
+        total_planned_downtime_seconds = await crud.get_total_planned_downtime_seconds(db, inicio, fim, camera_name_id)
+        
+        # Chama a função para calcular o total de downtime não planejado
+        total_unplanned_downtime_seconds = await crud.get_total_unplanned_downtime_seconds(db, inicio, fim, camera_name_id)
+        
+        # Chama a função para calcular o total de downtime não justificado
+        total_nonjustified_downtime_seconds = await crud.get_total_nonjustified_downtime_seconds(db, inicio, fim, camera_name_id)
+        
+        # Retorna o total de downtime não justificado
+        return {"total planejados seconds": total_planned_downtime_seconds,
+                "total não planejados seconds": total_unplanned_downtime_seconds,
+                "total não justificados seconds": total_nonjustified_downtime_seconds,
+                }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Função que retorna o resumo das paradas
+@router.get("/get_resumo_paradas_by_period")
+async def resumo_paradas_by_period(
+    inicio: str,  # Início do período, no formato "YYYY-MM-DD HH:MM:SS"
+    fim: str,     # Fim do período, no formato "YYYY-MM-DD HH:MM:SS"
+    camera_name_id: int,  # ID da câmera ou linha de produção
+    db: AsyncSession = Depends(get_db)  # Função para obter a sessão do DB
+) -> Dict[str, float]:
+    try:
+        # Convertendo as strings de data para datetime
+        inicio_dt = datetime.strptime(inicio, "%Y-%m-%d %H:%M:%S")
+        fim_dt = datetime.strptime(fim, "%Y-%m-%d %H:%M:%S")
+        
+        # Chama a função que retorna o resumo das paradas
+        resumo = await crud.get_resumo_paradas_by_period(db, inicio_dt, fim_dt, camera_name_id)
+        return resumo
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 # 📌 CREATE
 @router.post("/create_parada_nao_planejada/", response_model=schemas.UnplannedDowntimeSchema)

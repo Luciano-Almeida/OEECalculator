@@ -9,7 +9,7 @@ from database.db.conexao_db_externo import get_external_db
 import database.crud as crud
 from database.models import AutoOEE, OEESetup, DigestData, PlannedDowntimeSetup
 import schemas as schemas
-from services.servico_data_received import fetch_digest_data_from_datareceived, fetch_all_digest_data_from_datareceived, get_last_timestamp_from_dataReceived_by_camera_id
+from services.servico_data_received import fetch_paradas_after_init_date, fetch_digest_data_from_datareceived, fetch_all_digest_data_from_datareceived, get_last_timestamp_from_dataReceived_by_camera_id
 from services import oee_by_period
 
 
@@ -28,7 +28,7 @@ def str_para_time(hora_str: str) -> time:
     return datetime.strptime(hora_str, '%H:%M').time()
 
 class ServicoOEE:
-    def __init__(self, intervalo: float = 10.0, db_external: AsyncSession = None, db: AsyncSession = None):#, db: AsyncSession = Depends(get_db)):      
+    def __init__(self, intervalo: float = 60.0, db_external: AsyncSession = None, db: AsyncSession = None):#, db: AsyncSession = Depends(get_db)):      
         self._running = False
         self._interval = intervalo  # segundos entre cada verificação
         self.db_session = db
@@ -103,7 +103,7 @@ class ServicoOEE:
                         if last_digest:
                             intervalo_ate_ultimo_digest = agora - last_digest
                             digest_time_control = intervalo_ate_ultimo_digest - intervalo_ate_ultimo_data_received#
-                            if digest_time_control > self._digest_time[camera_id]:
+                            if digest_time_control > self._digest_time[camera_id]:                                
                                 await self.process_digest_data(camera_id, start=last_digest)
                         else:
                             await self.process_digest_data(camera_id, start=last_digest)
@@ -119,9 +119,9 @@ class ServicoOEE:
                         await self.process_parada(camera_id)
 
                         # AUTOOEE calculado uma vez por dia
-                        #if self.last_calculated_date != agora.date():
-                        #    await self.process_autooee(camera_id)
-                        #    self.last_calculated_date = agora.date()
+                        if self.last_calculated_date != agora.date():
+                            await self.process_autooee(camera_id)
+                            self.last_calculated_date = agora.date()
                     
                 # Espera um intervalo até a próxima análise        
                 await asyncio.sleep(self._interval)
@@ -138,10 +138,18 @@ class ServicoOEE:
 
 
     # Métodos Pirncipais
-    async def process_digest_data(self, camera_id: int, start: datetime, end=datetime.now()):
+    async def process_digest_data(self, camera_id: int, start: datetime, end: datetime=None):
         """ chama a partir de no mímino um periodo mínimo de self._digest_time[camera_id]
             mas se não hover produção será um período maior
         """        
+        if end is None:
+            end = datetime.now()  # Se 'end' não for fornecido, usa a data/hora atual
+
+        # Verifica se o start está antes do 'end'
+        if start >= end:
+            print(f"Erro: start não pode ser maior ou igual a end. start: {start}, end: {end}")
+            return
+        
         print(f"processando digest data camera: {camera_id} start {start} end {end}")
         if start != None:
             resultados = await fetch_digest_data_from_datareceived(
@@ -165,9 +173,13 @@ class ServicoOEE:
             camera_name_id = row[0][1]  # row["CameraId"]  # Ajuste conforme o formato do seu resultado
             ok = row[0][2]  # row["total_ok"]
             nok = row[0][3]  # row["total_nok"]
+            last_timestamp = row[0][4]
+
             # Convertendo start_digest e stop_digest para datetime
-            start_digest = datetime.strptime(row[1], "'%Y-%m-%d %H:%M:%S'")  # Format according to the string format
-            stop_digest = datetime.strptime(row[2], "'%Y-%m-%d %H:%M:%S'")  # Same as above
+            #start_digest = datetime.strptime(row[1], "'%Y-%m-%d %H:%M:%S'")  # Format according to the string format
+            #stop_digest = datetime.strptime(row[2], "'%Y-%m-%d %H:%M:%S'")  # Same as above
+            start_digest = row[1]
+            stop_digest = last_timestamp
 
             # Chamar a função para criar o registro na tabela DigestData
             #async with self.db_session.begin():
@@ -176,9 +188,11 @@ class ServicoOEE:
         
             # Atualiza cache
             self._cache_digest[camera_id] = stop_digest
+            #self._cache_digest[camera_id] = last_timestamp
             print("###self._cache_digest[camera_id]", self._cache_digest[camera_id])
+            print('last_timestamp', last_timestamp)
 
-    async def process_parada(self, camera_id: int):
+    """async def process_parada(self, camera_id: int):
         ultima_analise_de_parada = self._cache_parada[camera_id]
         stop_time = timedelta(seconds=self._cache_setupoee[camera_id].stop_time)  # tempo sem produção considerado como parada
         #print('stop_time', stop_time)
@@ -213,8 +227,47 @@ class ServicoOEE:
             self._cache_parada[camera_id] = digest[-1].stop_digest
             print('****** ultima_analise_de_parada', self._cache_parada[camera_id])
         else:
-            print('¨¨¨¨¨¨ ultima_analise_de_parada', ultima_analise_de_parada)
+            print('¨¨¨¨¨¨ ultima_analise_de_parada', ultima_analise_de_parada)"""
 
+    async def process_parada(self, camera_id: int):
+        ultima_analise_de_parada = self._cache_parada[camera_id]
+        stop_time = timedelta(seconds=self._cache_setupoee[camera_id].stop_time)  # tempo sem produção considerado como parada
+        #print('stop_time', stop_time)
+        digest = []
+        if ultima_analise_de_parada is None:
+            print('ultima parada planejada is none')
+            date_test = datetime.datetime.strptime("'2025-05-28 12:38:43.176207'".strip("'"), "%Y-%m-%d %H:%M:%S")
+            paradas = await fetch_paradas_after_init_date(
+                db=self.db_external, 
+                INIT=date_test, 
+                PARADA_TIME_STOP=stop_time
+                )
+        else:
+            print("9999999ultima_analise_de_parada", ultima_analise_de_parada)
+            paradas = await fetch_paradas_after_init_date(
+                db=self.db_external, 
+                INIT=ultima_analise_de_parada, 
+                PARADA_TIME_STOP=stop_time
+                )
+
+        for row in paradas:
+            startTime = row[0]#.isoformat() if row[0] else None
+            stopTime = row[1]#.isoformat() if row[1] else None
+            camera_name_id = row[2]
+            intervalo = row[3]
+
+            # Verificar se a nova parada é do tipo planejada
+            await self._verificar_parada_planejada(
+                        real_inicio=startTime, 
+                        real_fim=stopTime, 
+                        camera_id=camera_name_id
+                    )
+
+            # atualizar cache
+            self._cache_parada[camera_name_id] = stopTime
+            print('****** ultima_analise_de_parada', self._cache_parada[camera_name_id])
+
+    
     async def process_autooee(self, camera_id: int):
         turnos_pendentes = self.verificar_turnos_pendentes(camera_id)
         for turno in turnos_pendentes:
@@ -263,10 +316,11 @@ class ServicoOEE:
 
         if camera_id not in self._cache_setupoee:
             return turnos_pendentes
-        elif camera_id not in self._cache_autooee:# or camera_id not in self._cache_setupoee:
-            ultimo_auto_oee: datetime = datetime(2025, 3, 13, 7, 0, 0)# Exemplo: 25 de fevereiro de 2025, 7:00:00
+        elif self._cache_autooee[camera_id] == None:
+            """ alterar -> buscar pelo primeiro registro do banco """
+            ultimo_auto_oee = datetime(2025, 3, 13, 7, 0, 0)# Exemplo: 25 de fevereiro de 2025, 7:00:00
         else:
-            ultimo_auto_oee: datetime = self._cache_autooee[camera_id]
+            ultimo_auto_oee = self._cache_autooee[camera_id]
         
         shifts = self._cache_setupoee[camera_id].shifts
         agora = datetime.now()
@@ -370,17 +424,19 @@ class ServicoOEE:
 
     async def _verificar_parada_planejada(self, real_inicio, real_fim, camera_id):
         data_inicio = real_fim.date()
+        print('data_inicio', data_inicio)
 
         for setup in self._cache_setup_parada_planejada[camera_id]:
             # definir data para a parada planejada, para evitar erros de dias diferentes
             planejado_inicio = datetime.combine(data_inicio, setup.start_time) 
             planejado_fim = datetime.combine(data_inicio, setup.stop_time) 
             print('planejado_fim', planejado_fim)
+            print('setup', setup)
 
             # Calcula o período dentro do planejado
             dentro_inicio = max(planejado_inicio, real_inicio)
             dentro_fim = min(planejado_fim, real_fim)
-
+            print('dentro_fim - dentro_inicio', dentro_fim, dentro_inicio)
             # periodo real dentro da parada planejada
             if dentro_fim - dentro_inicio > timedelta(0):
                 # parada antes do planejado
@@ -392,7 +448,8 @@ class ServicoOEE:
                                     stop=planejado_inicio,
                                     camera_name_id=camera_id
                                 )
-                               
+                    print('cria parada antes do periodo planejado', real_inicio, planejado_inicio) 
+                
                 # cria parada e define como planejada
                 new_parada = await crud.create_parada(
                                 db=self.db_session, 
@@ -407,7 +464,8 @@ class ServicoOEE:
                                         paradas_id=new_parada.id,
                                         observacoes=""
                                     )
-                
+                print('cria parada e define como planejada', dentro_inicio, dentro_inicio)
+
                 # parada depois do planejado
                 if real_fim > planejado_fim:
                     # cria parada antes do periodo planejado
@@ -417,6 +475,7 @@ class ServicoOEE:
                                     stop=real_fim,
                                     camera_name_id=camera_id
                                 )
+                    print('parada depois do planejado', planejado_fim, real_fim)
             
                 # sair do loop
                 break
@@ -428,5 +487,6 @@ class ServicoOEE:
                             stop=real_fim,
                             camera_name_id=camera_id
                         )
+            print("Nova parada fora do setup criada", real_inicio, real_fim)
 
         

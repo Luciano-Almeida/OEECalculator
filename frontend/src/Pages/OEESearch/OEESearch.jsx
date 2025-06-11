@@ -19,9 +19,13 @@ const OEESearch = () => {
   const [oeeData, setOeeData] = useState([]);
   const [startDate, setStartDate] = useState(new Date()); // Estado para a data de início
   const [endDate, setEndDate] = useState(new Date()); // Estado para a data de fim
-  const [cameraId, setCameraId] = useState(1); // Estado para o ID da câmera
+  const [cameraId, setCameraId] = useState(Number(import.meta.env.VITE_CAMERA_DEFAULT) || 1); // Estado para o ID da câmera, com valor padrão vindo do .env
 
-  const [mediaIndicadoresTotalProducao, setMediaIndicadoresTotalProducao] = useState([])
+  //const [mediaIndicadoresTotalProducao, setMediaIndicadoresTotalProducao] = useState([])
+
+  // Carregar as câmeras do arquivo .env
+  const cameras = import.meta.env.VITE_CAMERAS ? import.meta.env.VITE_CAMERAS.split(',') : [];
+
 
   // Função para buscar os dados
   const fetchData = async () => {
@@ -63,9 +67,9 @@ const OEESearch = () => {
               <h3 style={{ textAlign: 'center' }}>Pesquisa de OEE</h3>
               <hr style={{ borderColor: '#aaa', width: '95%', marginBottom: '10px' }} />
               <div className="filters" style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-                <div>
+                <div style={{display: 'flex', flexWrap: 'wrap'}}>
                   <label>Período:</label>
-                  <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
                     <DatePicker
                       selected={startDate}
                       onChange={(date) => setStartDate(date)} // Atualizando a data de início
@@ -91,12 +95,14 @@ const OEESearch = () => {
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <label>Câmera:</label>
                   <Select
-                    defaultValue={cameraId}
+                    value={cameraId}
                     onChange={(value) => setCameraId(value)}
                   >
-                    <Option value={1}>Câmera 1</Option>
-                    <Option value={2}>Câmera 2</Option>
-                    <Option value={3}>Câmera 3</Option>
+                    {cameras.map((camera) => (
+                      <Option key={camera} value={camera}>
+                        {`${camera}`}
+                      </Option>
+                    ))}
                   </Select>
                 </div>
                 <Button type="primary" onClick={fetchData}>Buscar</Button>

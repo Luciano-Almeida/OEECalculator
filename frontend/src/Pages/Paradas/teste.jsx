@@ -9,6 +9,7 @@ const Teste = ({ selectedParada, tiposDeParadaNaoPlanejada, tiposDeParadaPlaneja
   const [alteracoesFeitas, setAlteracoesFeitas] = useState(false);
   const [tipoSelecionado, setTipoSelecionado] = useState('planejada'); // Novo estado para selecionar entre planejada e não planejada
   const [originalSelectedParada, setOriginalSelectedParada] = useState('');
+  const [isEditable, setIsEditable] = useState(true); // Estado para controlar a edição
 
   // Lógica para exibir os tipos de parada com base no tipo de parada selecionado
   const tiposDisponiveis = tipoSelecionado === 'planejada'
@@ -25,6 +26,25 @@ const Teste = ({ selectedParada, tiposDeParadaNaoPlanejada, tiposDeParadaPlaneja
       setTipoParada(selectedParada.paradaSetupID || ''); // Atualiza com o ID do Setup da parada
       setParadaID(selectedParada.paradaID || ''); // Atualiza com o ID da parada
       setTipoSelecionado(selectedParada.paradaType || '');
+
+      // Função para "zerar" as horas, minutos, segundos e milissegundos
+      const resetToStartOfDay = (date) => {
+        const d = new Date(date);
+        d.setHours(0, 0, 0, 0); // Zera as horas, minutos, segundos e milissegundos
+        return d;
+      };
+
+      // Verificar se o endTime é maior que o dia atual
+      const currentDate = resetToStartOfDay(new Date());
+      const endTime = resetToStartOfDay(new Date(selectedParada.endTime));
+
+      if (endTime < currentDate) {
+        setIsEditable(false); // Desabilita a edição
+      }
+      else{
+        setIsEditable(true); // Habilita a edição
+      }
+
       console.log('selectedParada', selectedParada);
     }
   }, [selectedParada]);
@@ -156,6 +176,7 @@ const Teste = ({ selectedParada, tiposDeParadaNaoPlanejada, tiposDeParadaPlaneja
                 value={tipoSelecionado}
                 onChange={handleTipoSelecionadoChange}
                 label="Tipo de Parada"
+                disabled={!isEditable}  // Desabilita o seletor se não for editável
               >
                 <MenuItem value="planejada">Planejada</MenuItem>
                 <MenuItem value="naoPlanejada">Não Planejada</MenuItem>
@@ -169,7 +190,7 @@ const Teste = ({ selectedParada, tiposDeParadaNaoPlanejada, tiposDeParadaPlaneja
                 value={tipoParada}
                 onChange={handleTipoParadaChange}
                 label=""
-                disabled={!tipoSelecionado} // Desativa se não tiver escolhido um tipo de parada
+                disabled={!tipoSelecionado  || !isEditable} // Desativa se não tiver escolhido um tipo de parada ou se não for editável
               >
                 {tiposDisponiveis.map((tipo) => (
                   <MenuItem key={tipo.id} value={tipo.id}>{tipo.name}</MenuItem>
@@ -187,6 +208,7 @@ const Teste = ({ selectedParada, tiposDeParadaNaoPlanejada, tiposDeParadaPlaneja
             rows={4}
             variant="outlined"
             placeholder="Digite as observações"
+            disabled={!isEditable} // Desabilita a edição se não for editável
           />
 
           <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
@@ -194,7 +216,7 @@ const Teste = ({ selectedParada, tiposDeParadaNaoPlanejada, tiposDeParadaPlaneja
               variant="contained"
               color="primary"
               onClick={handleSalvarAlteracoes}
-              disabled={!alteracoesFeitas}
+              disabled={!alteracoesFeitas || !isEditable} // Desabilita o botão se não houver alterações ou se não for editável
             >
               Salvar Alterações
             </Button>
@@ -202,7 +224,7 @@ const Teste = ({ selectedParada, tiposDeParadaNaoPlanejada, tiposDeParadaPlaneja
               variant="outlined"
               color="secondary"
               onClick={handleDescartarAlteracoes}
-              disabled={!alteracoesFeitas}
+              disabled={!alteracoesFeitas|| !isEditable} // Desabilita o botão se não houver alterações ou se não for editável
             >
               Descartar Alterações
             </Button>

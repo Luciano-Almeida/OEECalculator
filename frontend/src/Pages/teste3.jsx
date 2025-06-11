@@ -62,3 +62,7 @@ const ParadasSearch = () => {
 };
 
 export default ParadasSearch;
+
+
+
+

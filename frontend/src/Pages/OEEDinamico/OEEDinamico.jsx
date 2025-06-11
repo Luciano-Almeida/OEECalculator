@@ -1,5 +1,6 @@
 // src/components/OEEDinamico.jsx
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { format } from "date-fns";
 import LineSpeed from '../Graficos/LineSpeed';
@@ -15,14 +16,67 @@ const COLORS = ["#229752", '#1f8a4c', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'
 
 
 const OEEDinamico = () => {
+  const [cameraId, setCameraId] = useState(Number(import.meta.env.VITE_CAMERA_DEFAULT) || 1); 
   const [responseData, setResponseData] = useState(null);
 
   // Fetching data from the backend
+  const fetchData = async () => {
+    try {
+      // Data e hora atuais
+      const now = new Date();
+
+      // Definindo o 'inicio' como o dia atual às 08:00
+      const inicio = new Date(now);
+      inicio.setHours(8, 0, 0); // Define a hora para 08:00:00:000
+
+      // Função para formatar no formato ISO mas sem o ajuste para UTC
+      const formatDateToLocalISO = (date) => {
+        const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000); // Ajusta para o horário local
+        return localDate.toISOString().slice(0, 19); // Remove os milissegundos e "Z" do fuso horário
+      };
+
+      // Formatação para o formato ISO 8601 (YYYY-MM-DDTHH:mm:ss)
+      const inicioISO = formatDateToLocalISO(inicio);
+      const fimISO = formatDateToLocalISO(now);
+
+      console.log("Início:", inicioISO);
+      console.log("Fim:", fimISO);
+
+      // Fazendo a requisição usando o Axios
+      const response = await axios.get(`http://localhost:8000/oee`, {
+        params: {
+          inicio: inicioISO,  // Passando a data e hora no formato desejado
+          fim: fimISO,        // Passando a data e hora no formato desejado
+          camera_name_id: 2
+        }
+      });
+
+
+      setResponseData(response.data);
+      console.log(response.data);
+
+    } catch (error) {
+      console.error("Erro ao buscar os dados da API", error);
+    }
+  };
+
+  useEffect(() => {
+    // Chama o fetchData imediatamente e a cada 60 segundos
+    fetchData();  // Chama imediatamente na primeira renderização
+
+    const intervalId = setInterval(fetchData, 180000);  // 180.000ms = 3 minuto
+
+    return () => clearInterval(intervalId);  // Limpa o intervalo quando o componente for desmontado
+  }, []);  // O array vazio faz com que o efeito seja executado apenas uma vez após a montagem do componente
+  
+
+  /*
   useEffect(() => {
     
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:8000/oee/?inicio=2025-03-14T09:00:00&fim=2025-03-14T15:00:00&camera_name_id=1');
+        const response = await fetch('http://localhost:8000/oee/?inicio=2025-05-29T09:00:00&fim=2025-05-29T15:00:00&camera_name_id=2');
+                                                         //oee/?inicio=08:00:00&fim=12:09:11&camera_name_id=2 HTTP/1.1"
         if (response.ok) {
           const data = await response.json();
           setResponseData(data);
@@ -37,7 +91,7 @@ const OEEDinamico = () => {
 
     fetchData();
   }, []);  // O array vazio faz com que o efeito seja executado apenas uma vez após o componente ser montado
-
+  */
   if (!responseData) {
     return <div>Carregando...</div>;
   }
@@ -55,7 +109,7 @@ const OEEDinamico = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
-        <div style={{ display: 'flex', marginLeft: '40px', flexDirection: 'column', justifyContent: 'space-between'}}>
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between'}}>
           {/* Quantidade produzida */}
           <div style={{ width: '100%', marginTop: '10px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '10px', boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)' }}>
             <h3 style={{ textAlign: 'center' }}>Produção (unidades)</h3>
@@ -77,7 +131,7 @@ const OEEDinamico = () => {
         </div>
 
         {/* Seção de Indicadores */}
-        <div style={{ width: '58%', marginTop: '10px', marginRight: '40px', padding: '15px' , backgroundColor: '#f8f9fa', borderRadius: '10px', boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)' }}>
+        <div style={{ width: '58%', marginTop: '10px', padding: '15px' , backgroundColor: '#f8f9fa', borderRadius: '10px', boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)' }}>
           <h2 style={{ textAlign: 'center' }}>Indicadores de Performance</h2>
           <hr style={{ borderColor: '#aaa', width: '100%' }} />
 

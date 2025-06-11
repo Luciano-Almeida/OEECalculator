@@ -58,14 +58,18 @@ async def oee_by_period(
     # D. Tempo disponícel líquido (B - C)
     tempo_disponivel_liquido = total_available_time - total_planned_downtime
 
-    # E. Paradas não planejadas
+    # E. Paradas não planejadas + não justificadas
     #total_unplanned_downtime = timedelta(hours=0, minutes=0, seconds=0)
     total_unplanned_downtime_seconds = await crud.get_total_unplanned_downtime_seconds(db=db, inicio=inicio, fim=fim, camera_name_id=camera_name_id)
     total_unplanned_downtime = timedelta(seconds=int(total_unplanned_downtime_seconds))
     
+    total_nonjustified_downtime_seconds = await crud.get_total_nonjustified_downtime_seconds(db=db, inicio=inicio, fim=fim, camera_name_id=camera_name_id)
+    total_nonjustified_downtime = timedelta(seconds=int(total_nonjustified_downtime_seconds))
+    
+    total_paradas_nao_planejadas_ou_nao_justificadas = total_unplanned_downtime + total_nonjustified_downtime
 
     # F. Tempo operando (Tempo disponível - Paradas não planejadas) (D - E)
-    operating_time = tempo_disponivel_liquido - total_unplanned_downtime
+    operating_time = tempo_disponivel_liquido - total_paradas_nao_planejadas_ou_nao_justificadas
 
     # G. Relação de disponibilidade (F / D)
     availability_ratio = operating_time.total_seconds() / tempo_disponivel_liquido.total_seconds() if tempo_disponivel_liquido.total_seconds() > 0 else 0
@@ -102,7 +106,7 @@ async def oee_by_period(
         "B_Tempo_total_disponivel": timedelta_to_iso(total_available_time),
         "C_Paradas_planejadas": timedelta_to_iso(total_planned_downtime),
         "D_Tempo_disponivel_liquido(B-C)": timedelta_to_iso(tempo_disponivel_liquido),
-        "E_Paradas_nao_planejadas": timedelta_to_iso(total_unplanned_downtime),
+        "E_Paradas_nao_planejadas": timedelta_to_iso(total_paradas_nao_planejadas_ou_nao_justificadas),
         "F_Tempo_operando(D-E)": timedelta_to_iso(operating_time),
         "G_Relacao_disponibilidade(F/D)": round(availability_ratio * 100, 2),
         
@@ -116,3 +120,4 @@ async def oee_by_period(
 
         "oee(GxKxM)": round(oee * 100, 2)
     }
+

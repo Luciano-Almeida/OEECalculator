@@ -5,7 +5,7 @@ import StopTypesManagement from '../SetupParadas/StopTypesManagement';
 import './MenuParadas.css';  // Importa o CSS para o estilo dos botões
 
 import TimelineComponente from './ApontarParadasPopUp';
-import Teste from '../teste';
+import Teste from './teste';
 import ParadasSearch from '../teste3';
 
 

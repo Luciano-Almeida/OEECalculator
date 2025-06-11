@@ -12,20 +12,12 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 #RUN apt-get update && apt-get install -y sqlite3
 
 # Copiar os arquivos do backend para o container
-#COPY app.py /app/
 COPY . .
-#COPY C:/Users/gautama/db_oeecalculator.db /app/
-
-# Instalar dependências
-#RUN pip install fastapi[all] starlette uvicorn
-
-#RUN apt-get update && apt-get install sqlite3
-
-# Copia o arquivo de dependências para o container e instala as dependências
 
 
-# Expor a porta 8000 para o FastAPI
+# Expor a porta 8000 para o servidor
 EXPOSE 8000
 
-# Comando para rodar o servidor FastAPI
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Comando para rodar o servidor
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+#CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
