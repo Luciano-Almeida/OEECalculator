@@ -1,3 +1,5 @@
+from .auditoria_schemas import AuditoriaCreate
+
 from .bd_schemas import (
     CREATEOEESetupSchema,
     CREATEPlannedDowntimeSetup,

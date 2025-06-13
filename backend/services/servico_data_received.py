@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import text
 from .external_database_connection import ExternalDatabaseConnection
@@ -26,6 +26,10 @@ async def fetch_paradas(db: AsyncSession, PARADA_TIME_STOP = 60):
             - camera_name_id (str): Identificador da câmera.
             - intervalo (float): Duração da parada em segundos.
     """
+
+    # Certifique-se que PARADA_TIME_STOP está em segundos como float/int
+    if isinstance(PARADA_TIME_STOP, timedelta):
+        PARADA_TIME_STOP = PARADA_TIME_STOP.total_seconds()
 
     query_parada = text("""
         WITH ordered_data AS (
@@ -111,6 +115,14 @@ async def fetch_paradas_after_init_date(db: AsyncSession, INIT='2025-06-09 15:00
     WHERE EXTRACT(EPOCH FROM ("timestamp" - prev_timestamp)) > :parada_time_stop;
     """)'''
 
+    # Certifique-se que INIT está no formato datetime, se necessário
+    if isinstance(INIT, str):
+        INIT = datetime.strptime(INIT, '%Y-%m-%d %H:%M:%S')
+
+    # Certifique-se que PARADA_TIME_STOP está em segundos como float/int
+    if isinstance(PARADA_TIME_STOP, timedelta):
+        PARADA_TIME_STOP = PARADA_TIME_STOP.total_seconds()
+
     query_parada = text("""
     WITH ordered_data AS (
         SELECT 
@@ -158,7 +170,7 @@ async def fetch_digest_data_from_datareceived(
                                             CAMERA_NAME_ID, 
                                             DIGEST_TIME, 
                                             START_ANALISE="'2025-03-13 08:00:00'",
-                                            STOP_ANALISE = datetime.datetime.now()#"'2025-04-1 13:00:00'",                                            
+                                            STOP_ANALISE = datetime.now()#"'2025-04-1 13:00:00'",                                            
                                             ):
     print(f'Fetch Digest data from data_received from camera {CAMERA_NAME_ID} and Period {START_ANALISE} to {STOP_ANALISE}')
 
@@ -166,18 +178,18 @@ async def fetch_digest_data_from_datareceived(
     #start_time = datetime.datetime.strptime(START_ANALISE.strip("'"), "%Y-%m-%d %H:%M:%S")
     #stop_time = datetime.datetime.strptime(STOP_ANALISE.strip("'"), "%Y-%m-%d %H:%M:%S")
     if isinstance(START_ANALISE, str):
-        start_time = datetime.datetime.strptime(START_ANALISE.strip("'"), "%Y-%m-%d %H:%M:%S")
+        start_time = datetime.strptime(START_ANALISE.strip("'"), "%Y-%m-%d %H:%M:%S")
     else:
         start_time = START_ANALISE
 
     if isinstance(STOP_ANALISE, str):
-        stop_time = datetime.datetime.strptime(STOP_ANALISE.strip("'"), "%Y-%m-%d %H:%M:%S")
+        stop_time = datetime.strptime(STOP_ANALISE.strip("'"), "%Y-%m-%d %H:%M:%S")
     else:
         stop_time = STOP_ANALISE
 
     
     # Convertendo o tempo de digest para um intervalo de tempo (timedelta)
-    digest_delta = datetime.timedelta(seconds=DIGEST_TIME)
+    digest_delta = timedelta(seconds=DIGEST_TIME)
     
     # Inicializando o tempo atual com o tempo de início
     current_time = start_time
@@ -272,7 +284,7 @@ async def fetch_all_digest_data_from_datareceived(
         return []
     
     # Convertendo o tempo de digest para um intervalo de tempo (timedelta)
-    digest_delta = datetime.timedelta(seconds=DIGEST_TIME)
+    digest_delta = timedelta(seconds=DIGEST_TIME)
     current_time = start_time
 
     resultados = []

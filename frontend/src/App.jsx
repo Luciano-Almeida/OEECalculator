@@ -13,11 +13,12 @@ import OEESetup from './Pages/OEESetup/OEESetup';
 import StopTypesManagement from './Pages/SetupParadas/StopTypesManagement';
 
 import Relatorio from './Pages/Relatorio'; // Componente de exemplo para Relatório
-import { OEEProvider } from './Components/OEEContext';
 import MenuParadas from './Pages/Paradas/MenuParadas';
 import TesteOEESetup from './Pages/OEESetup/testeOEESetup';
 import TrilhaDeAuditoria from './Pages/TrilhaDeAuditoria/TrilhaDeAuditoria';
 
+import { OEEProvider } from './context/OEEContext';
+import { AuthProvider, useAuth} from './context/AuthContext'
 
 //import OEEParadas from './Pages/Paradas/OEEParadas';
 
@@ -50,27 +51,29 @@ function App() {
   };
 
   return (
-    <Layout onMenuClick={handleMenuClick}>
-      {/* Conteúdo principal */}
-      <OEEProvider>
-        {currentPage === 'OEEDinamico' && <OEEDinamico />}
-        {currentPage === 'Voltar' && <OEEDinamico />}
-        {currentPage === 'Paradas' && <ApontarParadas />}
-        {currentPage === 'OEESearch' && <OEESearch />}
-        {currentPage === 'Relatorio' && <Relatorio />}
+    <AuthProvider>
+      <Layout onMenuClick={handleMenuClick}>
+          {/* Conteúdo principal */}
+          <OEEProvider>
+            {currentPage === 'OEEDinamico' && <OEEDinamico />}
+            {currentPage === 'Voltar' && <OEEDinamico />}
+            {currentPage === 'Paradas' && <ApontarParadas />}
+            {currentPage === 'OEESearch' && <OEESearch />}
+            {currentPage === 'Relatorio' && <Relatorio />}
 
-        {currentPage === 'OEESetup' && <TesteOEESetup />}
-        {currentPage === 'ParadasSetup' && <StopTypesManagement />}
+            {currentPage === 'OEESetup' && <TesteOEESetup />}
+            {currentPage === 'ParadasSetup' && <StopTypesManagement />}
 
-        {currentPage === 'TrilhaDeAuditoria' && <TrilhaDeAuditoria />}
-        
+            {currentPage === 'TrilhaDeAuditoria' && <TrilhaDeAuditoria />}
+            
 
-        {/* Mantém a página atual e abre o pop-up quando necessário */}
-        {currentPage !== 'ApontarParadas' && (
-          <ApontarParadasPopUp open={open} onClose={handleClose} />
-        )}
-      </OEEProvider>
-    </Layout>
+            {/* Mantém a página atual e abre o pop-up quando necessário */}
+            {currentPage !== 'ApontarParadas' && (
+              <ApontarParadasPopUp open={open} onClose={handleClose} />
+            )}
+          </OEEProvider>
+      </Layout>
+    </AuthProvider>
   );
 }
 

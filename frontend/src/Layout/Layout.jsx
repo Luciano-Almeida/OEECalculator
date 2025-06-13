@@ -16,10 +16,56 @@ import botaoOeeSetup from '../assets/novos/Botao_OEE_Setup3.png'
 import botaoParadas from '../assets/novos/Botao_Paradas3.png' 
 import botaoParadaSetup from '../assets/novos/Botao_Parada_Setup.png' 
 import botaoConsulta from '../assets/novos/Botao_Consulta.png'
+import { useAuth } from '../context/AuthContext';
 
+const MENU_ITEMS = [
+  {
+    label: 'OEE',
+    icon: botaoOee,
+    permissao: 'acessar_oee_dinamico',
+    action: 'OEEDinamico',
+  },
+  {
+    label: 'Paradas',
+    icon: botaoParadas,
+    permissao: 'acessar_paradas',
+    action: 'Paradas',
+  },
+  {
+    label: 'Consulta',
+    icon: botaoConsulta,
+    permissao: 'acessar_oee_search',
+    action: 'OEESearch',
+  },
+  {/*
+    label: 'Auditoria',
+    icon: botaoAuditoria,
+    permissao: 'acessar_auditoria',
+    action: 'TrilhaDeAuditoria',
+  */},
+  {
+    label: 'OEE Setup',
+    icon: botaoOeeSetup,
+    permissao: 'acessar_oee_setup',
+    action: 'OEESetup',
+  },
+  {
+    label: 'Paradas Setup',
+    icon: botaoParadaSetup,
+    permissao: 'acessar_paradas_setup',
+    action: 'ParadasSetup',
+  },
+  {
+    label: 'Voltar',
+    icon: botaoVoltar,
+    permissao: 'acessar_voltar', // ou nenhuma permissão, se for sempre visível
+    action: 'Voltar',
+  },
+];
 
 const Layout = ({ children, onMenuClick}) => {
   const [currentTime, setCurrentTime] = useState('');
+  const { usuario, carregando } = useAuth();
 
   useEffect(() => {
     // Função para atualizar o horário atual
@@ -35,6 +81,10 @@ const Layout = ({ children, onMenuClick}) => {
     // Limpeza do intervalo quando o componente for desmontado
     return () => clearInterval(timeInterval);
   }, []);
+
+  if (carregando) {
+    return <div>Carregando autenticação...</div>; // Ou um Spinner
+  }
 
   return (
     <div className="app-container">
@@ -68,55 +118,16 @@ const Layout = ({ children, onMenuClick}) => {
 
       {/* Menu lateral */}
       <div className="sidebar">
-        <div className="menu-item" onClick={() => onMenuClick('OEEDinamico')}>
-            <img src={botaoOee} alt="Ícone 2" />
-            <p>OEE</p>
-        </div>
-
-        {/* 
-        <div className="menu-item" onClick={() => onMenuClick('Relatorio')}>
-          <img src={botaoRelatorio} alt="Ícone 1" />
-          <p>Relatório</p>
-        </div>
-
-        <div className="menu-item" onClick={() => onMenuClick('ApontarParadas')}>
-          <img src={botaoParada} alt="Ícone 1" />
-          <p>Apontar Paradas</p>
-        </div>
-
-        */}
-
-        <div className="menu-item" onClick={() => onMenuClick('Paradas')}>
-          <img src={botaoParadas} alt="Imagem transparente" className="imagem-maior" />
-          <p>Paradas</p>
-        </div>
-
-        <div className="menu-item" onClick={() => onMenuClick('OEESearch')}>
-            <img src={botaoConsulta} alt="Ícone 2" />
-            <p>Consulta</p>
-        </div>
-
-        <div className="menu-item" onClick={() => onMenuClick('TrilhaDeAuditoria')}>
-            <img src={botaoAuditoria} alt="Ícone 2" />
-            <p>Auditoria</p>
-        </div>
-
-        <div className="menu-item" onClick={() => onMenuClick('OEESetup')}>
-            <img src={botaoOeeSetup} alt="Ícone 2" />
-            <p>OEE Setup</p>
-        </div>
-
-        <div className="menu-item" onClick={() => onMenuClick('ParadasSetup')}>
-          <img src={botaoParadaSetup} alt="Ícone 3" />
-          <p>Paradas Setup</p>
-        </div>
-        
-
-        <div className="menu-item" onClick={() => onMenuClick('Voltar')}>
-          <img src={botaoVoltar} alt="Ícone 4" />
-          <p>Voltar</p>
-        </div>
+        {MENU_ITEMS.map((item) => 
+          usuario?.permissoes?.includes(item.permissao) ? (
+            <div className='menu-item' key={item.label} onClick={() => onMenuClick(item.action)}>
+              <img src={item.icon} alt={`Ícone ${item.label}`} />
+              <p>{item.label}</p>
+            </div>
+          ) : null
+        )}
       </div>
+
     </div>
   );
 };

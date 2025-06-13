@@ -9,7 +9,7 @@ from database.db.conexao_db_externo import get_external_db
 import database.crud as crud
 from database.models import AutoOEE, OEESetup, DigestData, PlannedDowntimeSetup
 import schemas as schemas
-from services.servico_data_received import fetch_paradas_after_init_date, fetch_digest_data_from_datareceived, fetch_all_digest_data_from_datareceived, get_last_timestamp_from_dataReceived_by_camera_id
+from services.servico_data_received import fetch_paradas_after_init_date, fetch_paradas, fetch_digest_data_from_datareceived, fetch_all_digest_data_from_datareceived, get_last_timestamp_from_dataReceived_by_camera_id
 from services import oee_by_period
 
 
@@ -236,10 +236,9 @@ class ServicoOEE:
         digest = []
         if ultima_analise_de_parada is None:
             print('ultima parada planejada is none')
-            date_test = datetime.datetime.strptime("'2025-05-28 12:38:43.176207'".strip("'"), "%Y-%m-%d %H:%M:%S")
-            paradas = await fetch_paradas_after_init_date(
+            #date_test = datetime.strptime("'2025-05-28 12:38:43.176207'".strip("'"), "%Y-%m-%d %H:%M:%S")
+            paradas = await fetch_paradas(
                 db=self.db_external, 
-                INIT=date_test, 
                 PARADA_TIME_STOP=stop_time
                 )
         else:
@@ -377,7 +376,7 @@ class ServicoOEE:
         Busca a configuração de parada planejada para a câmera e armazena em cache.
         """
         self._cache_setup_parada_planejada[camera_id] = await crud.get_planned_downtime_setup_by_camera_name_id(
-            db=self.db_session, camera_name_id=camera_id
+            db=self.db_session, camera_name_id=1
         )
 
     async def _carregar_ultimos_registros(self, camera_id):

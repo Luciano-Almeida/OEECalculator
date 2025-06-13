@@ -1,7 +1,7 @@
 // src/components/Dashboard.jsx
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as BarTooltip, Legend as BarLegend } from 'recharts';
-import { useOEE } from '../Components/OEEContext.jsx';
+import { useOEE } from '../context/OEEContext.jsx';
 
 // Cores para os gráficos
 const COLORS = ["#229752", '#1f8a4c', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'];

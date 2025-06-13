@@ -16,7 +16,7 @@ import schemas as schemas
 # Importando as classes do SQLAlchemy
 from database.models import OEESetup, PlannedDowntime, UnplannedDowntime, Paradas, AutoOEE, PlannedDowntimeSetup
 
-from services.servico_data_received import fetch_paradas_after_init_date
+from services.servico_data_received import fetch_paradas, fetch_paradas_after_init_date
 from database.db.conexao_db_externo import get_external_db
 
 router = APIRouter()
@@ -36,6 +36,11 @@ async def get_paradas(
         INIT=init_date,
         PARADA_TIME_STOP=parada_time_stop
     )
+    '''
+    paradas = await fetch_paradas(
+        db=db_external,
+        PARADA_TIME_STOP=parada_time_stop
+    )'''
 
     # Convertendo para formato JSON-serializável
     return [

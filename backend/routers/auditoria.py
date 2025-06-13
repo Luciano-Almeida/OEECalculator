@@ -1,63 +1,58 @@
 # app.py
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from pydantic import BaseModel
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict
 
-from database.db import get_db
-import database.crud as crud
+from database.db.conexao_db_externo import get_external_db
+import schemas as schemas
 
 
 router = APIRouter()
 
-# Simulação de dados de usuários
-users = [
-    {"id": 1, "name": "João Silva"},
-    {"id": 2, "name": "Maria Oliveira"},
-    {"id": 3, "name": "Carlos Souza"},
-    {"id": 4, "name": "Ana Costa"},
-]
 
-# Simulação de dados de trilha de auditoria
-audit_trail_data = [
-    {"userID": 1, "user": "João Silva", "action": "Login", "date": "2025-05-05", "details": "Login no sistema"},
-    {"userID": 2, "user": "Maria Oliveira", "action": "Alteração de dados", "date": "2025-05-05", "details": "Alteração no perfil"},
-    {"userID": 3, "user": "Carlos Souza", "action": "Logout", "date": "2025-05-05", "details": "Logout do sistema"},
-    {"userID": 4, "user": "Ana Costa", "action": "Alteração de senha", "date": "2025-05-05", "details": "Alteração de senha do usuário"},
-]
+@router.get("/autentication")
+def get_authenticated_user():
+    user = {
+        "nome": "usuarioAutomático",
+        "permissoes": [
+            "acessar_oee_dinamico", 
+            "acessar_paradas",
+            "acessar_oee_search",
+            "acessar_oee_setup",
+            "acessar_paradas_setup",
+            "acessar_voltar"
+        ]
+    }
+    return user
 
-# Modelo para representar a estrutura dos dados de auditoria
-class AuditEntry(BaseModel):
-    user: str
-    action: str
-    date: str
-    details: str
-
-# Rota para obter a lista de usuários
-@router.get("/users")
-async def get_users():
-    print("Get Users")
-    return users
-
-# Rota para obter a trilha de auditoria com base nos parâmetros
-@router.get("/audit-trail")
-async def get_audit_trail(
-    userID: Optional[int] = None,
-    startDate: Optional[str] = None,
-    endDate: Optional[str] = None
+@router.post("/criar_auditoria")
+async def criar_auditoria(
+    auditoria: schemas.AuditoriaCreate,
+    db: AsyncSession = Depends(get_external_db)
 ):
-    print("Trilha de auditoria0", userID, startDate, endDate)
-    filtered_data = audit_trail_data
-    print("Trilha de auditoria11", filtered_data)
-    # Filtra por usuário se fornecido
-    if userID:
-        filtered_data = [entry for entry in filtered_data if entry["userID"] == userID]
-    print("Trilha de auditoria1", filtered_data)
-    # Filtra por período (startDate e endDate) se fornecido
-    if startDate:
-        filtered_data = [entry for entry in filtered_data if entry["date"] >= startDate]
-    if endDate:
-        filtered_data = [entry for entry in filtered_data if entry["date"] <= endDate]
-    print("Trilha de auditoria", filtered_data)
-    return filtered_data
+    try:
+        query = text("""
+            INSERT INTO "Auditoria" ("Data", "Usuario", "Tela", "Acao", "Detalhe")
+            VALUES (:data, :usuario, :tela, :acao, :detalhe)
+        """)
+        
+        horario_atual = datetime.now(ZoneInfo("America/Sao_Paulo")).replace(tzinfo=None)
+        
+        await db.execute(query, {
+            "data": horario_atual,
+            "usuario": auditoria.usuario,
+            "tela": auditoria.tela,
+            "acao": auditoria.acao,
+            "detalhe": auditoria.detalhe
+        })
+        
+        await db.commit()
+        return {"mensagem": f"Registro de auditoria criado com sucesso data:{horario_atual}"}
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
