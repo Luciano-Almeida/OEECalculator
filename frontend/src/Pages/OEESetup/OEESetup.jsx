@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './TesteOEESetup.css';
 import ShiftForm from './ShiftForm';
 import ShiftList from './ShiftList';
+import { useAuditoria } from '../../hooks/useAuditoria';
 
 const cameraOptions = ['Câmera IP', 'Webcam USB', 'Câmera Industrial', 'Câmera Virtual'];
 
@@ -17,6 +18,11 @@ const TesteOEESetup = () => {
   const [cycleTime, setCycleTime] = useState('');
   const [machineStopTime, setMachineStopTime] = useState('');
   const [dataSummaryInterval, setDataSummaryInterval] = useState('');
+  const { registrarAuditoria } = useAuditoria();
+
+  const registro = async (action, detalhe) => {
+    await registrarAuditoria("TELA OEE SETUP", action, detalhe);
+  };
   
   const handleDayToggle = (day) => {
     setSelectedDays((prev) =>
@@ -30,7 +36,7 @@ const TesteOEESetup = () => {
     else if (field === 'endTime') setEndTime(value);
   };
 
-  const handleAddOrUpdateShift = () => {
+  const handleAddOrUpdateShift = async () => {
     if (!shiftName || !startTime || !endTime || selectedDays.length === 0) return;
 
     const newShift = {
@@ -52,6 +58,8 @@ const TesteOEESetup = () => {
     setStartTime('');
     setEndTime('');
     setSelectedDays([]);
+    console.log("ADICIONAR TURNO", `Turno: ${shiftName}, Início: ${startTime}, Fim: ${endTime}, Dias: ${selectedDays.join(', ')}`);
+    await registro("ADICIONAR TURNO", `Turno: ${shiftName}, Início: ${startTime}, Fim: ${endTime}, Dias: ${selectedDays.join(', ')}`);
   };
 
   const handleEditShift = (shift) => {
@@ -60,10 +68,13 @@ const TesteOEESetup = () => {
     setEndTime(shift.endTime);
     setSelectedDays(shift.days);
     setEditingId(shift.tempId);
+    console.log("EDITAR TURNO", `Turno editado: ${shift.name}`);
+    registro("EDITAR TURNO", `Turno editado: ${shift.name}`);
   };
 
   const handleDeleteShift = (shift) => {
     setShifts(shifts.filter(s => s.tempId !== shift.tempId));
+    registro("EXCLUIR TURNO", `Turno excluído: ${shift.name}`);
   };
 
   const handleSubmit = () => {
@@ -75,6 +86,7 @@ const TesteOEESetup = () => {
       dataSummaryInterval: Number(dataSummaryInterval)
     };
     console.log('Configuração do OEE:', config);
+    registro("SALVAR CONFIGURAÇÃO", `Configuração salva: ${JSON.stringify(config)}`);
     alert('✅ Configuração salva com sucesso!');
   };
 
@@ -85,7 +97,11 @@ const TesteOEESetup = () => {
       {/* Câmera */}
       <section className="oee-section">
         <h3>📷 Tipo de Câmera</h3>
-        <select value={cameraType} onChange={(e) => setCameraType(e.target.value)}>
+        <select value={cameraType} onChange={async (e) => {
+                                        setCameraType(e.target.value);
+                                        await registro("ALTERAÇÃO", `Tipo de câmera alterado: ${e.target.value}`);
+                                        }}
+        >
           <option value="">Selecione...</option>
           {cameraOptions.map((type, index) => (
             <option key={index} value={type}>{type}</option>
@@ -119,7 +135,10 @@ const TesteOEESetup = () => {
               type="number"
               placeholder="Peças por minuto"
               value={cycleTime}
-              onChange={(e) => setCycleTime(e.target.value)}
+              onChange={async (e) => {
+                setCycleTime(e.target.value);
+                await registro("ALTERAÇÃO", `Tempo de ciclo alterado para: ${e.target.value} PPM`);
+              }}
             />
           </div>
           <div>
@@ -128,7 +147,10 @@ const TesteOEESetup = () => {
               type="number"
               placeholder="Segundos"
               value={machineStopTime}
-              onChange={(e) => setMachineStopTime(e.target.value)}
+              onChange={async (e) => {
+                setMachineStopTime(e.target.value);
+                await registro("ALTERAÇÃO", `Tempo de parada da máquina alterado para: ${e.target.value} s`);
+              }}
             />
           </div>
           <div>
@@ -137,7 +159,10 @@ const TesteOEESetup = () => {
               type="number"
               placeholder="Segundos"
               value={dataSummaryInterval}
-              onChange={(e) => setDataSummaryInterval(e.target.value)}
+              onChange={async (e) => {
+                setDataSummaryInterval(e.target.value);
+                await registro("ALTERAÇÃO", `Intervalo de resumo dos dados alterado para: ${e.target.value} s`);
+              }}
             />
           </div>
         </div>

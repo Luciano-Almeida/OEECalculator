@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict
 
 from database.db.conexao_db_externo import get_external_db
+import database_external.crud as crud_external
 import schemas as schemas
 
 
@@ -16,19 +17,26 @@ router = APIRouter()
 
 
 @router.get("/autentication")
-def get_authenticated_user():
-    user = {
-        "nome": "usuarioAutomático",
-        "permissoes": [
-            "acessar_oee_dinamico", 
-            "acessar_paradas",
-            "acessar_oee_search",
-            "acessar_oee_setup",
-            "acessar_paradas_setup",
-            "acessar_voltar"
-        ]
-    }
-    return user
+async def get_authenticated_user(db: AsyncSession = Depends(get_external_db)):
+    try:
+        user_id = await crud_external.get_last_active_user_id(db)
+        user_data = await crud_external.get_user_info_by_id(db, user_id)
+        permissoes = await crud_external.get_permissoes_ativas_por_nivel_acesso(db, user_data["nivel_acesso"])
+        
+        user = {
+            "nome": user_data["nome"],
+            "nivel_acesso": user_data["nivel_acesso"],
+            "permissoes": permissoes["permissoes"]
+        }
+
+        print(f"--------{user_id}Usuário e Permissões {user}")
+
+        return user
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/criar_auditoria")
 async def criar_auditoria(

@@ -23,6 +23,7 @@ import DatePicker from 'react-datepicker'; // Biblioteca de Data
 import './ApontarParadas.css';
 import Teste from './teste';
 import { useDataInicioFim } from '../../services/useDataInicioFim';
+import { useAuditoria } from '../../hooks/useAuditoria';
 
 
 const { Option } = Select;
@@ -49,15 +50,19 @@ const ApontarParadas = () => {
   const [paradasPlanejadasTypes, setParadasPlanejadasTypes] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedParada, setSelectedParada] = useState("");
+  const { registrarAuditoria } = useAuditoria();
 
   // Carregar as câmeras do arquivo .env
   const cameras = import.meta.env.VITE_CAMERAS ? import.meta.env.VITE_CAMERAS.split(',') : [];
 
-  
+  const registro = async (action, detalhe) => {
+    await registrarAuditoria("TELA PARADAS", action, detalhe);
+  };
 
   const buscarParadas = async () => {
     if (new Date(inicio) >= new Date(fim)) {
       alert("A data de início deve ser anterior à data de fim.");
+      registro("Busca de Parada", `Erro data de início ${inicio} posterior à de fim ${fim}`);
       return;
     }
 
@@ -70,11 +75,13 @@ const ApontarParadas = () => {
     });
     setParadas(response.data);
     console.log("paradas_com_tipos", response.data);
+    registro("Busca de Parada", `Busca início ${inicio} fim ${fim} câmera ${cameraId}`);
   };
 
   const handleSalvarAlteracoes = async () => {
     await buscarParadas(); // Atualiza a lista
     setRefreshKey(prev => prev + 1); // << força o React a remontar o componente Teste
+    registro("Salvar Alterações", "Acesso Permitido");
   };
 
   // Função para definir cor e ícone com base no tipo da parada
@@ -150,14 +157,6 @@ const ApontarParadas = () => {
       console.error("Erro ao carregar paradas planejadas", error);
     }
   };
-  /*
-  useEffect(() => {
-    fetchParadasNaoPlanejadasSetup();
-    fetchParadasPlanejadasSetup();
-    buscarParadas();
-    
-  }, [])
-  */
  
   useEffect(() => {
     fetchParadasNaoPlanejadasSetup();
@@ -204,7 +203,10 @@ const ApontarParadas = () => {
               <label>Câmera:</label>
               <Select
                   value={cameraId}
-                  onChange={(value) => setCameraId(value)}
+                  onChange={async (value) => {
+                    setCameraId(value);
+                    await registro("ALTERAÇÃO", `Tipo de câmera alterada: ${value}`);
+                  }}
                 >
                   {cameras.map((camera) => (
                     <Option key={camera} value={camera}>

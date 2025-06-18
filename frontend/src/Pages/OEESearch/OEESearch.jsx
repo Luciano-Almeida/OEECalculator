@@ -12,6 +12,7 @@ import MediasIndicadores from './Analises/MediasIndicadores';
 import GraficoLinha from './Analises/GraficoLinha';
 import TotalProduzido from './Analises/TotalProduzido';
 import DowntimeChart from './Analises/DownTimeChart';
+import { useAuditoria } from '../../hooks/useAuditoria';
 
 const { Option } = Select;
 
@@ -25,6 +26,11 @@ const OEESearch = () => {
 
   // Carregar as câmeras do arquivo .env
   const cameras = import.meta.env.VITE_CAMERAS ? import.meta.env.VITE_CAMERAS.split(',') : [];
+  const { registrarAuditoria } = useAuditoria();
+
+  const registro = async (action, detalhe) => {
+    await registrarAuditoria("TELA BUSCA OEE", action, detalhe);
+  };
 
 
   // Função para buscar os dados
@@ -33,7 +39,6 @@ const OEESearch = () => {
       alert("Por favor, selecione as datas de início e fim.");
       return;
     }
-    console.log("Datas para envio:", startDate, endDate);
 
     const start = moment(startDate).format("YYYY-MM-DDTHH:mm:ss");
     const end = moment(endDate).format("YYYY-MM-DDTHH:mm:ss");
@@ -50,9 +55,10 @@ const OEESearch = () => {
       });
       setOeeData(response.data);
       console.log("response", response.data);
-
+      registro("Busca OEE", `Busca início ${start} fim ${end} câmera ${cameraId}`);
     } catch (error) {
       console.error("Erro ao buscar dados:", error);
+      registro("Busca OEE", `Erro ao buscar dados: ${error}`);
     }
   };
 
@@ -96,7 +102,10 @@ const OEESearch = () => {
                   <label>Câmera:</label>
                   <Select
                     value={cameraId}
-                    onChange={(value) => setCameraId(value)}
+                    onChange={async (value) => {
+                      setCameraId(value);
+                      await registro("ALTERAÇÃO", `Tipo de câmera alterada: ${value}`);
+                    }}
                   >
                     {cameras.map((camera) => (
                       <Option key={camera} value={camera}>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import { Typography, Paper, Select, MenuItem, TextField, Button, InputLabel, FormControl } from '@mui/material';
+import { useAuditoria } from '../../hooks/useAuditoria';
 
 const Teste = ({ selectedParada, tiposDeParadaNaoPlanejada, tiposDeParadaPlanejada, onSalvarAlteracoes }) => {
   const [observacao, setObservacao] = useState('');
@@ -10,6 +11,11 @@ const Teste = ({ selectedParada, tiposDeParadaNaoPlanejada, tiposDeParadaPlaneja
   const [tipoSelecionado, setTipoSelecionado] = useState('planejada'); // Novo estado para selecionar entre planejada e não planejada
   const [originalSelectedParada, setOriginalSelectedParada] = useState('');
   const [isEditable, setIsEditable] = useState(true); // Estado para controlar a edição
+  const { registrarAuditoria } = useAuditoria();
+
+  const registro = async (action, detalhe) => {
+    await registrarAuditoria("TELA PARADAS", action, detalhe);
+  };
 
   // Lógica para exibir os tipos de parada com base no tipo de parada selecionado
   const tiposDisponiveis = tipoSelecionado === 'planejada'
@@ -46,6 +52,7 @@ const Teste = ({ selectedParada, tiposDeParadaNaoPlanejada, tiposDeParadaPlaneja
       }
 
       console.log('selectedParada', selectedParada);
+      registro("Parada Selecionada", `Parada ID ${selectedParada.paradaID}`);
     }
   }, [selectedParada]);
 
@@ -144,6 +151,7 @@ const Teste = ({ selectedParada, tiposDeParadaNaoPlanejada, tiposDeParadaPlaneja
     setObservacao(selectedParada.obs);
     setTipoParada(selectedParada.paradaSetupID);
     setAlteracoesFeitas(false);
+    registro("Alterações Descartadas", "");
   };
 
   const checkAndFormatTimes = (startTime, endTime) => {

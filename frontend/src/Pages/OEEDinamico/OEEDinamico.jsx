@@ -22,7 +22,7 @@ const OEEDinamico = () => {
   const { registrarAuditoria } = useAuditoria();
 
   const registrarAberturaTela = async () => {
-    await registrarAuditoria("TELA OEE DINÂMICO", "Abertura do Sistema", "Acesso Permitido");
+    await registrarAuditoria("TELA OEE DINÂMICO", "Pesquisa OEE", "Acesso Permitido");
   };
 
   // Fetching data from the backend

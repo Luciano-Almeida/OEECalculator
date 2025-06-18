@@ -22,19 +22,19 @@ const MENU_ITEMS = [
   {
     label: 'OEE',
     icon: botaoOee,
-    permissao: 'acessar_oee_dinamico',
+    permissao: 'OEE.OEE_DINAMICO',
     action: 'OEEDinamico',
   },
   {
     label: 'Paradas',
     icon: botaoParadas,
-    permissao: 'acessar_paradas',
+    permissao: 'OEE.PARADAS',
     action: 'Paradas',
   },
   {
     label: 'Consulta',
     icon: botaoConsulta,
-    permissao: 'acessar_oee_search',
+    permissao: 'OEE.OEE_SEARCH',
     action: 'OEESearch',
   },
   {/*
@@ -46,21 +46,21 @@ const MENU_ITEMS = [
   {
     label: 'OEE Setup',
     icon: botaoOeeSetup,
-    permissao: 'acessar_oee_setup',
+    permissao: 'OEE.OEE_SETUP',
     action: 'OEESetup',
   },
   {
     label: 'Paradas Setup',
     icon: botaoParadaSetup,
-    permissao: 'acessar_paradas_setup',
+    permissao: 'OEE.PARADAS_SETUP',
     action: 'ParadasSetup',
   },
-  {
+  {/*
     label: 'Voltar',
     icon: botaoVoltar,
     permissao: 'acessar_voltar', // ou nenhuma permissão, se for sempre visível
     action: 'Voltar',
-  },
+  */},
 ];
 
 const Layout = ({ children, onMenuClick}) => {
@@ -108,7 +108,7 @@ const Layout = ({ children, onMenuClick}) => {
         {/* Rodapé */}
         <div className="footer">
           <div>
-            <p>Usuário: username</p>
+            <p>Usuário: {usuario?.nome ? usuario.nome : 'não definido'}</p>
           </div>
           <div>
             <p>Hora: {currentTime}</p>

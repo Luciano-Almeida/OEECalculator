@@ -2,11 +2,16 @@ import React, { useState } from 'react';
 import './TesteOEESetup.css';
 import ShiftForm from './ShiftForm';
 import ShiftList from './ShiftList';
+import { useAuditoria } from '../../hooks/useAuditoria';
 
-const cameraOptions = [
-  //{ id: 1, name: 'Câmera 1' },
-  { id: 2, name: 'Câmera 2' },
-];
+const cameraIds = import.meta.env.VITE_CAMERAS
+  ? import.meta.env.VITE_CAMERAS.split(',').map(id => parseInt(id.trim()))
+  : [];
+
+const cameraOptions = cameraIds.map(id => ({
+  id,
+  name: `Câmera ${id}`,
+}));
 
 const TesteOEESetup = () => {
   const [shifts, setShifts] = useState([]);
@@ -23,17 +28,30 @@ const TesteOEESetup = () => {
   const [dataSummaryInterval, setDataSummaryInterval] = useState('');
 
   const [setupId, setSetupId] = useState(null);
+  const { registrarAuditoria } = useAuditoria();
+
+  const registro = async (action, detalhe) => {
+    await registrarAuditoria("TELA OEE SETUP", action, detalhe);
+  };
 
   const handleDayToggle = (day) => {
     setSelectedDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
     );
+    registro("ALTERAÇÃO", `Dia ${day} ${selectedDays.includes(day) ? "removido" : "adicionado"} do turno`);
   };
 
   const handleFormChange = (field, value) => {
-    if (field === 'shiftName') setShiftName(value);
-    else if (field === 'startTime') setStartTime(value);
-    else if (field === 'endTime') setEndTime(value);
+    if (field === 'shiftName') {
+      setShiftName(value);
+      registro("ALTERAÇÃO", `Nome do turno alterado para: ${value}`);
+    } else if (field === 'startTime') {
+      setStartTime(value);
+      registro("ALTERAÇÃO", `Horário de início alterado para: ${value}`);
+    } else if (field === 'endTime') {
+      setEndTime(value);
+      registro("ALTERAÇÃO", `Horário de fim alterado para: ${value}`);
+    }
   };
 
   const handleAddOrUpdateShift = () => {
@@ -54,8 +72,10 @@ const TesteOEESetup = () => {
     if (editingId) {
       setShifts(shifts.map((s) => (s.tempId === editingId ? newShift : s)));
       setEditingId(null);
+      registro("EDITAR TURNO", `Turno editado: ${shiftName}`);
     } else {
       setShifts([...shifts, newShift]);
+      registro("ADICIONAR TURNO", `Turno: ${shiftName}, Início: ${startTime}, Fim: ${endTime}, Dias: ${selectedDays.join(', ')}`);
     }
   
     setShiftName('');
@@ -71,10 +91,12 @@ const TesteOEESetup = () => {
     setEndTime(shift.endTime);
     setSelectedDays(shift.days);
     setEditingId(shift.tempId);
+    registro("EDITAR TURNO", `Turno editado: ${shift.name}`);
   };
 
   const handleDeleteShift = (shift) => {
     setShifts(shifts.filter((s) => s.tempId !== shift.tempId));
+    registro("EXCLUIR TURNO", `Turno excluído: ${shift.name}`);
   };
 
   const handleCameraChange = async (e) => {
@@ -83,6 +105,7 @@ const TesteOEESetup = () => {
 
     setCameraId(selectedId);
     setCameraType(selectedName);
+    registro("SELECIONAR CÂMERA", `Câmera selecionada: ${selectedName} (ID ${selectedId})`);
 
     if (!selectedId) return;
 
@@ -105,9 +128,12 @@ const TesteOEESetup = () => {
       setStartTime(data.start_shift?.split('T')[1]?.slice(0, 5) || '');
       setEndTime(data.stop_shift?.split('T')[1]?.slice(0, 5) || '');
       setSetupId(data.id); // armazenando o ID para depois usar no update
+
+      registro("CARREGAR CONFIGURAÇÃO", `Setup carregado para câmera ${selectedName}`);
     } catch (error) {
       console.warn('Erro ao buscar configuração:', error.message);
       alert('⚠️ Nenhuma configuração encontrada para esta câmera.');
+      registro("ERRO", `Falha ao carregar configuração para câmera ${selectedName}`);
       // Limpar campos se quiser
     }
   };
@@ -121,7 +147,7 @@ const TesteOEESetup = () => {
       camera_name_id: cameraId,
       shifts: shifts.map(({ tempId, ...shift }) => shift), // removendo tempId
     };
-    console.log("payload", payload)
+    console.log("payload", payload);
     try {
       if (setupId) {
         const res = await fetch(`http://localhost:8000/update-oee-setup/${setupId}`, {
@@ -133,12 +159,15 @@ const TesteOEESetup = () => {
         if (!res.ok) throw new Error('Erro ao atualizar configuração');
         const updated = await res.json();
         alert('✅ Configuração atualizada com sucesso!');
+        registro("SALVAR CONFIGURAÇÃO", `Setup atualizado com ID: ${setupId}`);
       } else {
         alert('⚠️ Nenhum setup carregado para atualizar!');
+        registro("ERRO", "Tentativa de salvar sem setup carregado");
       }
     } catch (err) {
       console.error(err);
       alert('❌ Erro ao salvar a configuração.');
+      registro("ERRO", "Falha ao salvar configuração OEE");
     }
   };
   
