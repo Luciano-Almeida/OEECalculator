@@ -18,6 +18,7 @@ const COLORS = ["#229752", '#1f8a4c', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'
 
 const OEEDinamico = () => {
   const [cameraId, setCameraId] = useState(Number(import.meta.env.VITE_CAMERA_DEFAULT) || 1); 
+  const cameras = import.meta.env.VITE_CAMERAS ? import.meta.env.VITE_CAMERAS.split(',') : [];
   const [responseData, setResponseData] = useState(null);
   const { registrarAuditoria } = useAuditoria();
 
@@ -53,7 +54,7 @@ const OEEDinamico = () => {
         params: {
           inicio: inicioISO,  // Passando a data e hora no formato desejado
           fim: fimISO,        // Passando a data e hora no formato desejado
-          camera_name_id: 2
+          camera_name_id: cameraId
         }
       });
 
@@ -69,13 +70,11 @@ const OEEDinamico = () => {
   useEffect(() => {
     // Chama o fetchData imediatamente e a cada 60 segundos
     fetchData();  // Chama imediatamente na primeira renderização
-
     registrarAberturaTela();
-
     const intervalId = setInterval(fetchData, 180000);  // 180.000ms = 3 minuto
 
     return () => clearInterval(intervalId);  // Limpa o intervalo quando o componente for desmontado
-  }, []);  // O array vazio faz com que o efeito seja executado apenas uma vez após a montagem do componente
+  }, [cameraId]);  // O array vazio faz com que o efeito seja executado apenas uma vez após a montagem do componente
   
 
   
@@ -121,6 +120,24 @@ const OEEDinamico = () => {
         <div style={{ width: '58%', marginTop: '10px', padding: '15px' , backgroundColor: '#f8f9fa', borderRadius: '10px', boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)' }}>
           <h2 style={{ textAlign: 'center' }}>Indicadores de Performance</h2>
           <hr style={{ borderColor: '#aaa', width: '100%' }} />
+
+          {cameras.length > 1 && (
+            <div style={{ marginBottom: '15px', textAlign: 'end'}}>
+              <label htmlFor='cameraSelector' style={{ marginRight: '10px', fontWeight: 'bold' }}>Selecionar Câmera:</label>
+              <select
+                id='cameraSelector'
+                value={cameraId}
+                onChange={(e) => setCameraId(Number(e.target.value))}
+                style={{ padding: '5px', borderRadius: '5px', width: '10%' }}
+              >
+                {cameras.map((camera, index) => (
+                  <option key={index} value={index + 1}>
+                    {camera}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* OEE */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '30px' }}>
