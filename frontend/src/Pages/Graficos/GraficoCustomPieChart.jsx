@@ -72,7 +72,7 @@ const GraficoCustomPieChart = ({ produzidoTotal, produzidoBons, planejado }) => 
         <div className="info-card">
           <div className="info-title">Meta</div>
           <div className="info-value valor-meta">
-            {planejado} <span className="info-unit">unidades</span>
+            {Math.ceil(planejado)} <span className="info-unit">unidades</span>
           </div>
         </div>
         <div style={{display: "flex", gap: "20px"}}>

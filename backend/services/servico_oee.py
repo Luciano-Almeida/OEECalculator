@@ -94,8 +94,13 @@ class ServicoOEE:
 
                         # read last timestamp from dataReceived
                         last_data_received = await get_last_timestamp_from_dataReceived_by_camera_id(db=self.db_external, CAMERA_NAME_ID=camera_id)
-                        intervalo_ate_ultimo_data_received = agora - last_data_received
+                        #intervalo_ate_ultimo_data_received = agora - last_data_received
                         #print("last data_received timestamp", last_data_received)
+                        if last_data_received is None:
+                            print(f"[camera_id:{camera_id}] Nenhum data_received encontrado.")
+                            continue  # ou use um valor padrão como `agora`, ou pule esse ciclo
+                        else:
+                            intervalo_ate_ultimo_data_received = agora - last_data_received
 
 
                         # DigestTime
@@ -144,14 +149,14 @@ class ServicoOEE:
         """        
         if end is None:
             end = datetime.now()  # Se 'end' não for fornecido, usa a data/hora atual
-
-        # Verifica se o start está antes do 'end'
-        if start >= end:
-            print(f"Erro: start não pode ser maior ou igual a end. start: {start}, end: {end}")
-            return
         
         print(f"processando digest data camera: {camera_id} start {start} end {end}")
-        if start != None:
+        if start is not None:
+            # Verifica se o start está antes do 'end'
+            if start >= end:
+                print(f"Erro: start não pode ser maior ou igual a end. start: {start}, end: {end}")
+                return
+            
             resultados = await fetch_digest_data_from_datareceived(
                 db=self.db_external, 
                 CAMERA_NAME_ID=camera_id,
@@ -159,7 +164,7 @@ class ServicoOEE:
                 START_ANALISE=start, # datetime "'2025-03-24 16:23:00'",
                 STOP_ANALISE=end
                 )
-        else:
+        else:            
             resultados = await fetch_all_digest_data_from_datareceived(
                 db=self.db_external,
                 CAMERA_NAME_ID=camera_id, 

@@ -12,6 +12,9 @@ from services import oee_by_period
 from database.models import OEESetup, PlannedDowntime, UnplannedDowntime, Paradas, AutoOEE, PlannedDowntimeSetup
 
 router = APIRouter()
+
+async def autentication():
+    pass
  
 @router.get("/oee/", response_model=Dict)
 async def get_oee(
@@ -41,4 +44,5 @@ async def get_oee(
     )
 
     oee_data["discretizado"] = discretized_history
+    oee_data["autentication"] = await autentication()
     return oee_data

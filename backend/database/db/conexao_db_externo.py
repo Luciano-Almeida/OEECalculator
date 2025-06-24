@@ -9,7 +9,12 @@ from sqlalchemy.orm import sessionmaker
 EXTERNAL_DATABASE_URL = os.getenv("EXTERNAL_DATABASE_URL", default = None)
 print("EXTERNAL_DATABASE_URL", EXTERNAL_DATABASE_URL)
 
-engine_db1 = create_async_engine(EXTERNAL_DATABASE_URL, echo=False)
+engine_db1 = create_async_engine(
+    EXTERNAL_DATABASE_URL, 
+    echo=False,
+    pool_size=10,
+    max_overflow=20
+    )
 AsyncSessionLocalDB1 = sessionmaker(engine_db1, class_=AsyncSession, expire_on_commit=False)
 
 # Dependência assíncrona
