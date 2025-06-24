@@ -23,8 +23,12 @@ export const AuthProvider = ({ children }) => {
         autenticar();
     }, []);
 
+    const atualizarUsuario = (novosDados) => {
+        setUsuario(novosDados);
+    };
+
     return (
-        <AuthContext.Provider value={{ usuario, carregando}}>
+        <AuthContext.Provider value={{ usuario, carregando, atualizarUsuario }}>
             {children}
         </AuthContext.Provider>
     );

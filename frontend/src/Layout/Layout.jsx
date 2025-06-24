@@ -65,7 +65,7 @@ const MENU_ITEMS = [
 
 const Layout = ({ children, onMenuClick}) => {
   const [currentTime, setCurrentTime] = useState('');
-  const { usuario, carregando } = useAuth();
+  const { usuario, carregando, atualizarUsuario } = useAuth();
 
   useEffect(() => {
     // Função para atualizar o horário atual

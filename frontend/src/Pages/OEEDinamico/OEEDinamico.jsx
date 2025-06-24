@@ -11,6 +11,7 @@ import ProductionChart from '../Graficos/ProductionChart';
 import CustomActiveShapePieChart from '../Graficos/CustomActiveShapePieChart';
 import GraficoCustomPieChart2 from '../Graficos/GraficoCustomPieChart2';
 import { useAuditoria } from '../../hooks/useAuditoria';
+import { useAuth } from '../../context/AuthContext';
 
 // Cores para os gráficos
 const COLORS = ["#229752", '#1f8a4c', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
@@ -21,6 +22,7 @@ const OEEDinamico = () => {
   const cameras = import.meta.env.VITE_CAMERAS ? import.meta.env.VITE_CAMERAS.split(',') : [];
   const [responseData, setResponseData] = useState(null);
   const { registrarAuditoria } = useAuditoria();
+  const { atualizarUsuario } = useAuth();
 
   const registrarAberturaTela = async () => {
     await registrarAuditoria("TELA OEE DINÂMICO", "Pesquisa OEE", "Acesso Permitido");
@@ -61,6 +63,11 @@ const OEEDinamico = () => {
 
       setResponseData(response.data);
       console.log(response.data);
+
+      // Atualiza o usuário
+      if (response.data.autentication){
+        atualizarUsuario(response.data.autentication);
+      }
 
     } catch (error) {
       console.error("Erro ao buscar os dados da API", error);

@@ -9,19 +9,19 @@ from utils import timedelta_to_iso
 from services import oee_by_period
 
 # Importando as classes do SQLAlchemy
+from database.db.conexao_db_externo import get_external_db
 from database.models import OEESetup, PlannedDowntime, UnplannedDowntime, Paradas, AutoOEE, PlannedDowntimeSetup
+from services import get_authenticated_user_data
 
 router = APIRouter()
-
-async def autentication():
-    pass
  
 @router.get("/oee/", response_model=Dict)
 async def get_oee(
     inicio: datetime, 
     fim: datetime, 
     camera_name_id: int, 
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    external_db: AsyncSession = Depends(get_external_db)
 ):
     """
     Retorna uma lista com todas os dados do OEE e do historico de produção discretizado por um periodo
@@ -42,7 +42,8 @@ async def get_oee(
         camera_name_id=camera_name_id,
         period=timedelta(minutes=2)
     )
+    user = await get_authenticated_user_data(external_db)
 
     oee_data["discretizado"] = discretized_history
-    oee_data["autentication"] = await autentication()
+    oee_data["autentication"] = user
     return oee_data
