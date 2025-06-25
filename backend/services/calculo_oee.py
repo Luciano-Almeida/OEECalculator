@@ -116,7 +116,7 @@ async def oee_by_period(
         "K_Relacao_desempenho(H/J)": round(performance_ratio * 100, 2),
         
         "L_Total_pecas_defeituosas": total_defective_pieces,
-        "M_Relacao_qualidade(H-(L/H))": round(quality_ratio * 100, 2),
+        "M_Relacao_qualidade((H-L)/H)": round(quality_ratio * 100, 2),
 
         "oee(GxKxM)": round(oee * 100, 2)
     }

@@ -167,7 +167,7 @@ const OEEDinamico = () => {
             {[
               { label: 'Disponibilidade', value: responseData['G_Relacao_disponibilidade(F/D)'] },
               { label: 'Desempenho', value: responseData['K_Relacao_desempenho(H/J)'] },
-              { label: 'Qualidade', value: responseData['M_Relacao_qualidade(H-(L/H))'] }
+              { label: 'Qualidade', value: responseData['M_Relacao_qualidade((H-L)/H)'] }
             ].map((item, idx) => (
               <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <GraficoCustomPieChart2

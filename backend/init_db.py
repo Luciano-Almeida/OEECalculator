@@ -44,7 +44,7 @@ async def init_db():
                 # Insere o setup OEE inicial
                 user = "instalação"
                 stop_time = 60.0  # 60 segundos
-                line_speed = 120  # 120 unidades por minuto
+                line_speed = 60  # 120 unidades por minuto
                 digest_time = 60.0 # 60 segundos entre cada resumo 
                 camera_name_id = 2  # ID da câmera
                 #await crud.create_oee_setup(db, )
