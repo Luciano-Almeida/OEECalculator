@@ -11,13 +11,27 @@ const GraficoLinha = ({ oeeData }) => {
   }
 
   // Preparando os dados para o gráfico
-  const chartData = oeeData.map((item) => ({
-    date: moment(item.init).format('DD/MM/YYYY HH:MM'), // Formatar a data
-    OEE: item.oee,
-    Disponibilidade: item.availability,
-    Desempenho: item.performance,
-    Qualidade: item.quality,
-  }));
+  const chartData = oeeData.map((item) => {
+    const initFormatted = new Date(item.init).toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  
+    const endFormatted = new Date(item.end).toLocaleString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  
+    return {
+      date: `${initFormatted} à ${endFormatted}`,
+      OEE: item.oee,
+      Disponibilidade: item.availability,
+      Desempenho: item.performance,
+      Qualidade: item.quality,
+    };
+  });
 
   console.log("linha", oeeData);
 

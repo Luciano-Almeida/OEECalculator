@@ -18,17 +18,26 @@ const DowntimeChart = ({ oeeData }) => {
   }
 
   // Transformando os dados para o formato aceito pelo Recharts
-  const chartData = oeeData.map((item) => ({
-    name: new Date(item.init).toLocaleString("pt-BR", {
+  const chartData = oeeData.map((item) => {
+    const initFormatted = new Date(item.init).toLocaleString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
-    }),
-    planejadas: item.downtime_summary.planejadas,
-    nao_planejadas: item.downtime_summary.nao_planejadas,
-    nao_justificadas: item.downtime_summary.nao_justificadas,
-  }));
+    });
+  
+    const endFormatted = new Date(item.end).toLocaleString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  
+    return {
+      name: `${initFormatted} à ${endFormatted}`,
+      planejadas: item.downtime_summary.planejadas,
+      nao_planejadas: item.downtime_summary.nao_planejadas,
+      nao_justificadas: item.downtime_summary.nao_justificadas,
+    };
+  });
 
   return (
     <ResponsiveContainer width="100%" height={400}>

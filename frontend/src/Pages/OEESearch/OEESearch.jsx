@@ -32,6 +32,14 @@ const OEESearch = () => {
     await registrarAuditoria("TELA BUSCA OEE", action, detalhe);
   };
 
+  const setStartOfDay = (date) => {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+  };
+  
+  const setEndOfDay = (date) => {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+  };  
+  
 
   // Função para buscar os dados
   const fetchData = async () => {
@@ -40,8 +48,11 @@ const OEESearch = () => {
       return;
     }
 
-    const start = moment(startDate).format("YYYY-MM-DDTHH:mm:ss");
-    const end = moment(endDate).format("YYYY-MM-DDTHH:mm:ss");
+    const pad = (n) => String(n).padStart(2, '0');
+    const formatDateTime = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+
+    const start =  formatDateTime(setStartOfDay(startDate));
+    const end = formatDateTime(setEndOfDay(endDate));
 
     console.log("Datas formatadas para envio:", start, end);
 
@@ -78,7 +89,10 @@ const OEESearch = () => {
                   <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
                     <DatePicker
                       selected={startDate}
-                      onChange={(date) => setStartDate(date)} // Atualizando a data de início
+                      onChange={(date) => {
+                        //const adjusted = setStartOfDay(date);
+                        setStartDate(date);
+                      }} 
                       dateFormat="yyyy-MM-dd"
                       selectsStart
                       startDate={startDate}
@@ -88,7 +102,10 @@ const OEESearch = () => {
                     <span style={{ margin: '0 10px' }}>a</span>
                     <DatePicker
                       selected={endDate}
-                      onChange={(date) => setEndDate(date)} // Atualizando a data de fim
+                      onChange={(date) => {
+                        //const adjusted = setEndOfDay(date);
+                        setEndDate(date);
+                      }} // Atualizando a data de fim
                       dateFormat="yyyy-MM-dd"
                       selectsEnd
                       startDate={startDate}
