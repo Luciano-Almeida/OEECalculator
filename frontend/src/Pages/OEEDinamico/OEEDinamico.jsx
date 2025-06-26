@@ -8,7 +8,6 @@ import GraficoTemporal from '../Graficos/GraficoTemporal';
 import GraficoCustomPieChart from '../Graficos/GraficoCustomPieChart';
 import PieChartWithNeedleGrafico from '../Graficos/PieChartWithNeedleGrafico';
 import ProductionChart from '../Graficos/ProductionChart';
-import CustomActiveShapePieChart from '../Graficos/CustomActiveShapePieChart';
 import GraficoCustomPieChart2 from '../Graficos/GraficoCustomPieChart2';
 import { useAuditoria } from '../../hooks/useAuditoria';
 import { useAuth } from '../../context/AuthContext';
@@ -28,6 +27,7 @@ const OEEDinamico = () => {
     await registrarAuditoria("TELA OEE DINÂMICO", "Pesquisa OEE", "Acesso Permitido");
   };
 
+
   // Fetching data from the backend
   const fetchData = async () => {
     try {
@@ -36,7 +36,7 @@ const OEEDinamico = () => {
 
       // Definindo o 'inicio' como o dia atual às 08:00
       const inicio = new Date(now);
-      inicio.setHours(8, 0, 0); // Define a hora para 08:00:00:000
+      inicio.setHours(7, 0, 0); // Define a hora para 08:00:00:000
 
       // Função para formatar no formato ISO mas sem o ajuste para UTC
       const formatDateToLocalISO = (date) => {
@@ -54,8 +54,9 @@ const OEEDinamico = () => {
       // Fazendo a requisição usando o Axios
       const response = await axios.get(`http://localhost:8000/oee`, {
         params: {
-          inicio: inicioISO,  // Passando a data e hora no formato desejado
-          fim: fimISO,        // Passando a data e hora no formato desejado
+          //inicio: inicioISO,  // Passando a data e hora no formato desejado
+          //fim: fimISO,        // Passando a data e hora no formato desejado
+          hora_atual: fimISO,
           camera_name_id: cameraId
         }
       });
@@ -188,7 +189,11 @@ const OEEDinamico = () => {
       <div style={{ width: '100%', marginTop: '10px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '10px', boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)' }}>
         <h3 style={{ textAlign: 'center' }}>Histórico de Produção</h3>
         <hr style={{ borderColor: '#aaa', width: '95%' }} />
-        <GraficoTemporal discretizado={responseData['discretizado']} />
+        <GraficoTemporal 
+          discretizado={responseData['discretizado']} 
+          startTime={format(new Date(responseData['shift_atual'][0]), 'HH:mm')} 
+          endTime={format(new Date(responseData['shift_atual'][1]), 'HH:mm')} 
+        />
       </div>
 
       

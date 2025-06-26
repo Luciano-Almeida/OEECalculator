@@ -301,7 +301,7 @@ class ServicoOEE:
                                     camera_name_id=camera_id, 
                                     availability=oee_data['G_Relacao_disponibilidade(F/D)'], 
                                     performance=oee_data['K_Relacao_desempenho(H/J)'], 
-                                    quality=oee_data['M_Relacao_qualidade(H-(L/H))'],
+                                    quality=oee_data['M_Relacao_qualidade((H-L)/H)'],
                                     oee=oee_data['oee(GxKxM)'], 
                                     total_ok=oee_data['H_Total_pecas_produzidas'] - oee_data['L_Total_pecas_defeituosas'], 
                                     downtime_summary=downtime_summary,
