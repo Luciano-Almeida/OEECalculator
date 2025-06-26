@@ -322,7 +322,7 @@ class ServicoOEE:
             return turnos_pendentes
         elif self._cache_autooee[camera_id] == None:
             """ alterar -> buscar pelo primeiro registro do banco """
-            ultimo_auto_oee = datetime(2025, 3, 13, 7, 0, 0)# Exemplo: 25 de fevereiro de 2025, 7:00:00
+            ultimo_auto_oee = datetime(2025, 6, 20, 7, 0, 0)# Exemplo: 25 de fevereiro de 2025, 7:00:00
         else:
             ultimo_auto_oee = self._cache_autooee[camera_id]
         
@@ -348,6 +348,13 @@ class ServicoOEE:
 
                 if fim_turno <= ultimo_auto_oee:
                     continue  # já registrado
+                
+                # ✅ VERIFICA SE O LAST_DIGEST É MAIOR QUE O TURNO
+                # ✅ VERIFICA SE O LAST_DIGEST ESTÁ DENTRO DO TURNO
+                #if self._cache_digest[camera_id] is None or not (inicio_turno <= self._cache_digest[camera_id] <= fim_turno):
+                if self._cache_digest[camera_id] is None or (self._cache_digest[camera_id] < fim_turno):
+                    print(f"[camera_id:{camera_id}] Ignorando turno {shift['name']} de {inicio_turno} a {fim_turno} pois last_digest ({self._cache_digest[camera_id]}) não está dentro.")
+                    continue
 
                 if fim_turno <= agora:
                     # turno já passou e ainda não foi registrado

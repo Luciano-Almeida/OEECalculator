@@ -36,13 +36,24 @@ async def lifespan(app: FastAPI):
             break  # Pega uma sessão apenas
         break
 
-    # Inicia o serviço em segundo plano
-    task = asyncio.create_task(servico_oee.iniciar())
-
-    # Armazena o serviço no estado do app
     app.state.servico_oee = servico_oee
 
-    yield  # Aqui o app está rodando
+    # Supervisão: Tenta reiniciar o serviço se cair
+    async def supervision_loop():
+        while True:
+            try:
+                print("🔄 Iniciando serviço OEE supervisionado...")
+                await servico_oee.iniciar()
+            except Exception as e:
+                print(f"💥 Serviço OEE caiu com erro: {e}")
+                await asyncio.sleep(5)  # tempo de espera antes de tentar reiniciar
+            else:
+                print("🟡 Serviço OEE parou normalmente.")
+                break  # sai do loop se parou por vontade própria
+
+    task = asyncio.create_task(supervision_loop())
+
+    yield
 
     print("🛑 Encerrando o app...")
 
