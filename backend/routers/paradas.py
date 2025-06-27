@@ -162,6 +162,10 @@ async def delete_planned_downtime_route(record_id: int, db: AsyncSession = Depen
 async def delete_unplanned_downtime_route(record_id: int, db: AsyncSession = Depends(get_db)):
     return await crud.delete_unplanned_downtime(db, record_id)
 
+@router.delete("/delete_parada_by_id/{record_id}", response_model=Dict[str, Any])
+async def delete_paradas(record_id: int, db: AsyncSession = Depends(get_db)):
+    return await crud.delete_paradas(db, record_id)
+
 
 # 📌 UPDATE
 @router.put("/update_parada_nao_planejada/{record_id}", response_model=Dict[str, Any])
