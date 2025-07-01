@@ -97,6 +97,30 @@ def get_current_or_previous_shift(hora_atual: datetime, shifts: List[schemas.Shi
 
     return latest_shift_times
  
+from typing import List
+from datetime import datetime, timedelta
+
+def formatar_paradas_planejadas(paradas_raw: List, data_base: datetime) -> List[dict]:
+    paradas_formatadas = []
+
+    for parada in paradas_raw:
+        start_parts = list(map(int, str(parada.start_time).split(":")))
+        stop_parts = list(map(int, str(parada.stop_time).split(":")))
+
+        start_dt = data_base.replace(hour=start_parts[0], minute=start_parts[1], second=start_parts[2], microsecond=0)
+        stop_dt = data_base.replace(hour=stop_parts[0], minute=stop_parts[1], second=stop_parts[2], microsecond=0)
+
+        if stop_dt <= start_dt:
+            stop_dt += timedelta(days=1)  # Caso a parada cruze a meia-noite
+
+        paradas_formatadas.append({
+            "start": start_dt.isoformat(),
+            "end": stop_dt.isoformat(),
+            "name": parada.name  # opcional, caso queira exibir tooltip/legenda
+        })
+
+    return paradas_formatadas
+
 
 @router.get("/oee/", response_model=Dict)
 async def get_oee(
@@ -135,10 +159,17 @@ async def get_oee(
         period=timedelta(minutes=2)
     )
     
+    # 4. Usuário
     user = await get_authenticated_user_data(external_db)
+    
+    # 5. Setup Paradas Planejadas da câmera específica
+    setup_paradas_planejadas_raw = await crud.get_all_planned_downtime_setups(db)
+    setup_paradas_planejadas = formatar_paradas_planejadas(setup_paradas_planejadas_raw, inicio)
 
+    # 6. Monta resposta
     oee_data["autentication"] = user
     oee_data["shift_atual"] = shift_atual
+    oee_data["setup_paradas_planejadas"] = setup_paradas_planejadas
     oee_data["discretizado"] = discretized_history
     return oee_data
 

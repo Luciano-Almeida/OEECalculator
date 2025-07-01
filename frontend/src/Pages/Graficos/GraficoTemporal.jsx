@@ -1,6 +1,7 @@
 import React from 'react';
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ResponsiveContainer
+  LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ResponsiveContainer,
+  ReferenceArea, Label 
 } from 'recharts';
 import { format, parseISO, set, addMinutes, isBefore, isEqual } from 'date-fns';
 
@@ -19,7 +20,7 @@ const gerarIntervalos = (start, end, stepMinutes) => {
   return result;
 };
 
-const GraficoTemporal = ({ discretizado, startTime = "08:00", endTime = "17:00" }) => {
+const GraficoTemporal = ({ discretizado, startTime = "08:00", endTime = "17:00", paradas = [] }) => {
   const start = parseHourMinute(startTime);
   const end = parseHourMinute(endTime);
 
@@ -61,10 +62,11 @@ const GraficoTemporal = ({ discretizado, startTime = "08:00", endTime = "17:00" 
   });
 
   // Preenche os dados finais com todos os horários (mesmo os vazios)
-  const data = intervalos.map((hora) => {
+  const data = intervalos.map((hora, index) => {
     const horaStr = format(hora, 'HH:mm');
     const valores = dataMap.get(horaStr) || { total_ok: 0, total_nok: 0 };
     return {
+      index,
       hora: horaStr,
       total_ok: valores.total_ok,
       total_nok: valores.total_nok,
@@ -72,17 +74,75 @@ const GraficoTemporal = ({ discretizado, startTime = "08:00", endTime = "17:00" 
     };
   });
 
+  const getIndexFromTime = (timeISO) => {
+    const targetTime = parseISO(timeISO);
+
+    let closestIndex = null;
+    let closestDiff = Infinity;
+
+    for (const d of data) {
+      const [h, m] = d.hora.split(':').map(Number);
+      const dataTime = set(now, { hours: h, minutes: m, seconds: 0, milliseconds: 0 });
+      const diff = Math.abs(dataTime - targetTime);
+
+      if (diff < closestDiff) {
+        closestDiff = diff;
+        closestIndex = d.index;
+      }
+    }
+
+    return closestIndex;
+  };
+
   return (
     <ResponsiveContainer width="100%" height={400}>
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="hora" />
+        <XAxis dataKey="index" tickFormatter={(idx) => data[idx]?.hora || ''} />
         <YAxis />
         <Tooltip />
         <Legend />
         <Line type="monotone" dataKey="total_ok" stroke="#4CAF50" name="Bons" dot={false} />
         <Line type="monotone" dataKey="total_nok" stroke="#F44336" name="Ruins" dot={false} />
         {/*<Line type="monotone" dataKey="total_total" stroke="#2196F3" name="Total Geral" />*/}
+
+        {/* Marcações de paradas */}
+        {paradas
+          .filter((parada) => {
+            const start = parseISO(parada.start_time);
+            const end = parseISO(parada.end_time);
+            return (
+              isBefore(start, endLimit) && // começa antes do fim do gráfico
+              isBefore(startLimit, end)    // termina depois do início do gráfico
+            );
+          })
+          .map((parada, idx) => {
+            const x1 = getIndexFromTime(parada.start_time);
+            const x2 = getIndexFromTime(parada.end_time);
+
+            if (x1 === undefined || x2 === undefined || x1 === x2) return null;
+
+            return (
+              <ReferenceArea
+                key={idx}
+                x1={x1}
+                x2={x2}
+                strokeOpacity={0.3}
+                fill="rgba(255, 193, 7, 0.3)"
+              >
+                <Label
+                  value={parada.name}
+                  position="insideTop"
+                  fill="#0D47A1"  // Azul escuro
+                  fontSize={12}
+                  fontWeight="bold"
+                  offset={10}
+                />
+              </ReferenceArea>
+            );
+          })
+        }
+
       </LineChart>
     </ResponsiveContainer>
   );

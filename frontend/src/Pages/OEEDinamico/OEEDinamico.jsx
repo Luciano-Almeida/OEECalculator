@@ -105,6 +105,11 @@ const OEEDinamico = () => {
   const turnoFim = format(new Date(responseData['shift_atual'][1]), 'HH:mm');
   const turnoTexto = `${turnoInicio} à ${turnoFim}`;
 
+  const paradas = [
+    { start: '2025-07-01T14:30:00', end: '2025-07-01T15:00:00' },
+    { start: '2025-07-01T16:15:00', end: '2025-07-01T16:45:00' },
+  ];
+
   if (!responseData['autentication']){
     return <div>Nenhum Usuário Ativo...</div>; // Ou um Spinner
   }
@@ -210,6 +215,7 @@ const OEEDinamico = () => {
           discretizado={responseData['discretizado']} 
           startTime={format(new Date(responseData['shift_atual'][0]), 'HH:mm')} 
           endTime={format(new Date(responseData['shift_atual'][1]), 'HH:mm')} 
+          paradas={responseData['setup_paradas_planejadas']}
         />
       </div>
 
