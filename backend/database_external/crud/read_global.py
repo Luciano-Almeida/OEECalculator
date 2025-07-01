@@ -38,14 +38,17 @@ async def get_last_active_user_id(db: AsyncSession):
     query = text("""SELECT "usuarioAtivo_ID" FROM "Global";""")
     result = await fetch_all_rows(db, query)
 
-    if not result or not result[0][0]:
-        raise HTTPException(status_code=404, detail="Nenhum usuário ativo encontrado")
+    if not result or result[0][0] is None:
+        #raise HTTPException(status_code=404, detail="Nenhum usuário ativo encontrado")
+        print("RESULT", result)
+        return None
     
     # Extrai apenas os IDs de cada tupla e cria uma lista
     usuario_ativo_ids = [row[0] for row in result]
 
     if not usuario_ativo_ids:
-        raise HTTPException(status_code=404, detail="Lista de IDs de usuários vazia")
+        #raise HTTPException(status_code=404, detail="Lista de IDs de usuários vazia")
+        return None
 
     return usuario_ativo_ids[0]  # Retorna o último ID da lista
 

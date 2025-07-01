@@ -79,7 +79,7 @@ const OEESearch = () => {
         
         <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
           {/* Pesquisa */}
-          <div style={{ display: 'flex', width: '30%', marginLeft: '40px', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', width: '30%', marginLeft: '10px', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div style={{ width: '100%', marginTop: '10px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '10px', boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)' }}>
               <h3 style={{ textAlign: 'center' }}>Pesquisa de OEE</h3>
               <hr style={{ borderColor: '#aaa', width: '95%', marginBottom: '10px' }} />

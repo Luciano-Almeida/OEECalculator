@@ -68,7 +68,7 @@ def get_current_or_previous_shift(hora_atual: datetime, shifts: List[schemas.Shi
 
     for shift in shifts:
         shift_days = [DIAS_SEMANA[d] for d in shift['days'] if d in DIAS_SEMANA]
-        for offset in [0, -1]:  # Hoje e ontem
+        for offset in [0, -1, -2, -3, -4, -5]:  # Hoje e ontem e dias anteriores
             check_day = (current_weekday + offset) % 7
             if check_day in shift_days:
                 shift_date = (hora_atual - timedelta(days=-offset)).date()
@@ -122,7 +122,8 @@ async def get_oee(
 
     inicio, fim = shift_atual
     # se preferir o fim como a hora atual
-    fim = hora_atual
+    if fim > hora_atual:
+        fim = hora_atual
     print('pesquisa', inicio, fim)
     oee_data = await oee_by_period(inicio, fim, camera_name_id, oee_setup.line_speed, db)
 
@@ -133,11 +134,12 @@ async def get_oee(
         camera_name_id=camera_name_id,
         period=timedelta(minutes=2)
     )
+    
     user = await get_authenticated_user_data(external_db)
 
-    oee_data["discretizado"] = discretized_history
     oee_data["autentication"] = user
     oee_data["shift_atual"] = shift_atual
+    oee_data["discretizado"] = discretized_history
     return oee_data
 
 
@@ -175,7 +177,6 @@ async def get_oee_back(
     
     user = await get_authenticated_user_data(external_db)
 
-    oee_data["discretizado"] = discretized_history
     oee_data["autentication"] = user
-
+    oee_data["discretizado"] = discretized_history
     return oee_data

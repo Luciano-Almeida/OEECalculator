@@ -90,6 +90,7 @@ const OEEDinamico = () => {
     return <div>Carregando...</div>;
   }
 
+
   // Converte "HH:MM:SS" para segundos
   const timeStringToSeconds = (timeString) => {
     const [hours, minutes, seconds] = timeString.split(':').map(Number);
@@ -99,6 +100,14 @@ const OEEDinamico = () => {
 
   // Calcula peças por minuto real
   const velocidade_real = Math.round(responseData['H_Total_pecas_produzidas'] / (timeStringToSeconds(responseData['F_Tempo_operando(D-E)']) / 60))
+  // Formatando o turno atual para exibir na tela
+  const turnoInicio = format(new Date(responseData['shift_atual'][0]), 'HH:mm');
+  const turnoFim = format(new Date(responseData['shift_atual'][1]), 'HH:mm');
+  const turnoTexto = `${turnoInicio} à ${turnoFim}`;
+
+  if (!responseData['autentication']){
+    return <div>Nenhum Usuário Ativo...</div>; // Ou um Spinner
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -129,23 +138,31 @@ const OEEDinamico = () => {
           <h2 style={{ textAlign: 'center' }}>Indicadores de Performance</h2>
           <hr style={{ borderColor: '#aaa', width: '100%' }} />
 
-          {cameras.length > 1 && (
-            <div style={{ marginBottom: '15px', textAlign: 'end'}}>
-              <label htmlFor='cameraSelector' style={{ marginRight: '10px', fontWeight: 'bold' }}>Selecionar Câmera:</label>
-              <select
-                id='cameraSelector'
-                value={cameraId}
-                onChange={(e) => setCameraId(Number(e.target.value))}
-                style={{ padding: '5px', borderRadius: '5px', width: '10%' }}
-              >
-                {cameras.map((camera, index) => (
-                  <option key={index} value={index + 1}>
-                    {camera}
-                  </option>
-                ))}
-              </select>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* Turno atual */}
+            <div style={{ fontWeight: 'bold', color: '#333' }}>
+              Turno atual: {turnoTexto}
             </div>
-          )}
+
+            {/* Seletor de câmera (só aparece se houver mais de uma) */}
+            {cameras.length > 1 && (
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <label htmlFor='cameraSelector' style={{ marginRight: '10px', fontWeight: 'bold' }}>Câmera:</label>
+                <select
+                  id='cameraSelector'
+                  value={cameraId}
+                  onChange={(e) => setCameraId(Number(e.target.value))}
+                  style={{ padding: '5px', borderRadius: '5px' }}
+                >
+                  {cameras.map((camera, index) => (
+                    <option key={index} value={index + 1}>
+                      {camera}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
 
           {/* OEE */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '30px' }}>
