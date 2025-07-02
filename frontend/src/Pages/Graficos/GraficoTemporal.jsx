@@ -100,7 +100,13 @@ const GraficoTemporal = ({ discretizado, startTime = "08:00", endTime = "17:00",
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="index" tickFormatter={(idx) => data[idx]?.hora || ''} />
         <YAxis />
-        <Tooltip />
+        <Tooltip
+          formatter={(value, name) => [value, name === 'total_ok' ? 'Bons' : name === 'total_nok' ? 'Ruins' : name]}
+          labelFormatter={(label) => {
+            const item = data.find((d) => d.index === label);
+            return item ? `Hora: ${item.hora}` : '';
+          }}
+        />
         <Legend />
         <Line type="monotone" dataKey="total_ok" stroke="#4CAF50" name="Bons" dot={false} />
         <Line type="monotone" dataKey="total_nok" stroke="#F44336" name="Ruins" dot={false} />
