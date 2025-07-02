@@ -57,6 +57,7 @@ from .special_read import (
     get_total_nonjustified_downtime_seconds,
     get_total_ok_nok_from_digest,
     get_total_ok_nok_discretized_by_period,
+    get_total_ok_nok_grouped_by_rows,
     get_planned_downtime_filtered_by_init_end_cameraId,
     get_paradas_com_tipo,
     get_resumo_paradas_by_period

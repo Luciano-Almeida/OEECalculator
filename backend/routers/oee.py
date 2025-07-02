@@ -151,12 +151,13 @@ async def get_oee(
     print('pesquisa', inicio, fim)
     oee_data = await oee_by_period(inicio, fim, camera_name_id, oee_setup.line_speed, db)
 
-    discretized_history = await crud.get_total_ok_nok_discretized_by_period(
+    # 3. Histórico de produção
+    discretized_history = await crud.get_total_ok_nok_grouped_by_rows(
         db=db,
         inicio=inicio,
         fim=fim,
         camera_name_id=camera_name_id,
-        period=timedelta(minutes=2)
+        group_size=1
     )
     
     # 4. Usuário

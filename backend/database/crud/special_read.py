@@ -228,6 +228,53 @@ async def get_total_ok_nok_discretized_by_period(
     
     return results
 
+async def get_total_ok_nok_grouped_by_rows(
+    db: AsyncSession,
+    inicio: datetime,
+    fim: datetime,
+    camera_name_id: int,
+    group_size: int 
+) -> List[Dict[str, int]]:
+    """
+    Agrupa registros consecutivos de DigestData por N linhas (ex: 2 ou 3) e calcula total de OK/NOK por grupo.
+    """
+
+    # Buscar todos os registros ordenados por tempo dentro do intervalo
+    stmt = (
+        select(DigestData)
+        .where(
+            DigestData.start_digest >= inicio,
+            DigestData.stop_digest <= fim,
+            DigestData.camera_name_id == camera_name_id
+        )
+        .order_by(DigestData.start_digest)
+    )
+
+    result = await db.execute(stmt)
+    rows = result.scalars().all()
+
+    results = []
+
+    # Agrupar os registros em blocos de N (ex: 2 ou 3 linhas consecutivas)
+    for i in range(0, len(rows), group_size):
+        group = rows[i:i+group_size]
+
+        if not group:
+            continue
+
+        total_ok = sum(r.ok for r in group)
+        total_nok = sum(r.nok for r in group)
+        start = group[0].start_digest
+        end = group[-1].stop_digest
+
+        results.append({
+            "start": start,
+            "end": end,
+            "total_ok": total_ok,
+            "total_nok": total_nok
+        })
+
+    return results
 
 async def get_digest_data_filtered_by_stop_and_cameraId(db: AsyncSession, fim: datetime, camera_name_id: int) -> List[DigestData]:
     stmt = select(DigestData).where(
