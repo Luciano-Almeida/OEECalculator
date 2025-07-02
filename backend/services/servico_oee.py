@@ -11,9 +11,10 @@ from database.models import AutoOEE, OEESetup, DigestData, PlannedDowntimeSetup
 import schemas as schemas
 from services.servico_data_received import fetch_paradas_after_init_date, fetch_paradas, fetch_digest_data_from_datareceived, fetch_all_digest_data_from_datareceived, get_last_timestamp_from_dataReceived_by_camera_id
 from services import oee_by_period
+from utils import DIAS_SEMANA
 
 
-DIAS_SEMANA = {
+"""DIAS_SEMANA = {
     'Segunda': 0,
     'Terça': 1,
     'Quarta': 2,
@@ -21,7 +22,7 @@ DIAS_SEMANA = {
     'Sexta': 4,
     'Sábado': 5,
     'Domingo': 6
-}
+}"""
 
 def str_para_time(hora_str: str) -> time:
     """Converte string no formato 'HH:MM' para objeto datetime.time."""
@@ -45,11 +46,15 @@ class ServicoOEE:
         self._stop_time: Dict[int, timedelta] = {}
 
         self._cache_setup_parada_planejada: Dict[int, PlannedDowntimeSetup] = {}
-
+        self._inicio_parada_turno: Dict[int, datetime] = {}
         self._oee_atual: Dict[int, Any] = {}  # dados atuais do OEE por shift_id
 
         # Adicionando lock por camera_id
         self._locks: Dict[int, asyncio.Lock] = {}
+
+        # variaveis gerais
+        self.last_data_received = None
+        self.agora = None  # centraliza a hora atual de cada running
 
     async def iniciar(self):
         print("######### Iniciando variáveis cacheadas... #########", flush=True)
@@ -84,7 +89,7 @@ class ServicoOEE:
             while self._running:
                 #logger.info("Serviço OEE está rodando...")
                 print(f"Serviço OEE está rodando...intervalo {self._interval}", flush=True)
-                agora = datetime.now()
+                self.agora = datetime.now()
 
                 # Para cada câmera
                 for camera_id in list(self._cache_setupoee.keys()):
@@ -93,20 +98,20 @@ class ServicoOEE:
                         print(f"running camera {camera_id}")
 
                         # read last timestamp from dataReceived
-                        last_data_received = await get_last_timestamp_from_dataReceived_by_camera_id(db=self.db_external, CAMERA_NAME_ID=camera_id)
+                        self.last_data_received = await get_last_timestamp_from_dataReceived_by_camera_id(db=self.db_external, CAMERA_NAME_ID=camera_id)
                         #intervalo_ate_ultimo_data_received = agora - last_data_received
                         #print("last data_received timestamp", last_data_received)
-                        if last_data_received is None:
+                        if self.last_data_received is None:
                             print(f"[camera_id:{camera_id}] Nenhum data_received encontrado.")
                             continue  # ou use um valor padrão como `agora`, ou pule esse ciclo
                         else:
-                            intervalo_ate_ultimo_data_received = agora - last_data_received
+                            intervalo_ate_ultimo_data_received = self.agora - self.last_data_received
 
 
                         # DigestTime
                         last_digest = self._cache_digest[camera_id]
                         if last_digest:
-                            intervalo_ate_ultimo_digest = agora - last_digest
+                            intervalo_ate_ultimo_digest = self.agora - last_digest
                             digest_time_control = intervalo_ate_ultimo_digest - intervalo_ate_ultimo_data_received#
                             if digest_time_control > self._digest_time[camera_id]:                                
                                 await self.process_digest_data(camera_id, start=last_digest)
@@ -124,10 +129,10 @@ class ServicoOEE:
                         await self.process_parada(camera_id)
 
                         # AUTOOEE calculado uma vez por dia
-                        if self.last_calculated_date != agora.date():
+                        if self.last_calculated_date != self.agora.date():
                             await self.process_autooee(camera_id)
-                            self.last_calculated_date = agora.date()
-                    
+                            self.last_calculated_date = self.agora.date()
+
                 # Espera um intervalo até a próxima análise        
                 await asyncio.sleep(self._interval)
         except asyncio.CancelledError:
@@ -149,14 +154,13 @@ class ServicoOEE:
         """        
         if end is None:
             end = datetime.now()  # Se 'end' não for fornecido, usa a data/hora atual
+
         
         print(f"processando digest data camera: {camera_id} start {start} end {end}")
         if start is not None:
-            # Verifica se o start está antes do 'end'
             if start >= end:
                 print(f"Erro: start não pode ser maior ou igual a end. start: {start}, end: {end}")
                 return
-            
             resultados = await fetch_digest_data_from_datareceived(
                 db=self.db_external, 
                 CAMERA_NAME_ID=camera_id,
@@ -164,7 +168,9 @@ class ServicoOEE:
                 START_ANALISE=start, # datetime "'2025-03-24 16:23:00'",
                 STOP_ANALISE=end
                 )
-        else:            
+        else:
+            # Verifica se o start está antes do 'end'
+            print("aqui")            
             resultados = await fetch_all_digest_data_from_datareceived(
                 db=self.db_external,
                 CAMERA_NAME_ID=camera_id, 
@@ -197,48 +203,10 @@ class ServicoOEE:
             print("###self._cache_digest[camera_id]", self._cache_digest[camera_id])
             print('last_timestamp', last_timestamp)
 
-    """async def process_parada(self, camera_id: int):
-        ultima_analise_de_parada = self._cache_parada[camera_id]
-        stop_time = timedelta(seconds=self._cache_setupoee[camera_id].stop_time)  # tempo sem produção considerado como parada
-        #print('stop_time', stop_time)
-        digest = []
-        if ultima_analise_de_parada is None:
-            print("!!!!!!!!!ultima_analise_de_parada", ultima_analise_de_parada)
-            digest = await crud.get_digest_data_by_camera_name_id(
-                db=self.db_session, 
-                camera_name_id=camera_id
-            )
-        else:
-            print("9999999ultima_analise_de_parada", ultima_analise_de_parada)
-            digest = await crud.get_digest_data_filtered_by_stop_and_cameraId(
-                db=self.db_session,
-                fim=ultima_analise_de_parada,
-                camera_name_id=camera_id
-            )
-
-        
-        if digest:
-            for i in range(1, len(digest)):
-                difference_between_digest = digest[i].start_digest - digest[i-1].stop_digest
-                if difference_between_digest > stop_time:
-                    # Verificar se a nova parada é do tipo planejada
-                    await self._verificar_parada_planejada(
-                        real_inicio=digest[i-1].stop_digest, 
-                        real_fim=digest[i].start_digest, 
-                        camera_id=camera_id
-                    )
-
-            # atualizar cache
-            self._cache_parada[camera_id] = digest[-1].stop_digest
-            print('****** ultima_analise_de_parada', self._cache_parada[camera_id])
-        else:
-            print('¨¨¨¨¨¨ ultima_analise_de_parada', ultima_analise_de_parada)"""
-
     async def process_parada(self, camera_id: int):
         ultima_analise_de_parada = self._cache_parada[camera_id]
         stop_time = timedelta(seconds=self._cache_setupoee[camera_id].stop_time)  # tempo sem produção considerado como parada
-        #print('stop_time', stop_time)
-        digest = []
+
         if ultima_analise_de_parada is None:
             print('ultima parada planejada is none')
             #date_test = datetime.strptime("'2025-05-28 12:38:43.176207'".strip("'"), "%Y-%m-%d %H:%M:%S")
@@ -253,25 +221,152 @@ class ServicoOEE:
                 INIT=ultima_analise_de_parada, 
                 PARADA_TIME_STOP=stop_time
                 )
-
+            
         for row in paradas:
             startTime = row[0]#.isoformat() if row[0] else None
             stopTime = row[1]#.isoformat() if row[1] else None
             camera_name_id = row[2]
             intervalo = row[3]
 
-            # Verificar se a nova parada é do tipo planejada
-            await self._verificar_parada_planejada(
-                        real_inicio=startTime, 
-                        real_fim=stopTime, 
-                        camera_id=camera_name_id
-                    )
+            # Obter turnos da câmera
+            shifts = self._cache_setupoee[camera_name_id].shifts
 
-            # atualizar cache
-            self._cache_parada[camera_name_id] = stopTime
-            print('****** ultima_analise_de_parada', self._cache_parada[camera_name_id])
+            # Dividir parada se cruzar turnos
+            partes_parada = await self.dividir_parada_por_turno(startTime, stopTime, shifts)
+
+            for parte in partes_parada:
+                await self._verificar_parada_planejada(
+                    real_inicio=parte['start'],
+                    real_fim=parte['end'],
+                    camera_id=camera_name_id
+                )
+
+                # Atualiza o cache com a última parte do intervalo
+                self._cache_parada[camera_name_id] = parte['end']
+                print('****** ultima_analise_de_parada', self._cache_parada[camera_name_id])
+        
+        await self.verificar_paradas_no_inicio_do_turno(camera_id)
+
+        if not paradas and ultima_analise_de_parada is not None and self.last_data_received is not None:
+            # Executa código quando NÃO houver nenhuma parada
+            if ultima_analise_de_parada < self.last_data_received:
+                intervalo = self.agora - self.last_data_received
+                # saber se intervalo até ultima parada é maior que time_stop
+                if intervalo >= stop_time:
+                    # saber se ultimo data_receiveid é anterior ao dia atual -> se sim salvar parada
+                    if self.agora.date() > self.last_data_received.date():
+                        print("🟡 Data atual é diferente da última data_received.")
+                        print(f"➡️ Salvando parada de {self.last_data_received} até {self.agora} por mudança de dia.")
+                        
+                        await self._verificar_parada_planejada(
+                            real_inicio=self.last_data_received,
+                            real_fim=self.agora,
+                            camera_id=camera_id
+                        )
+
+                        # Atualiza o cache
+                        self._cache_parada[camera_id] = self.agora
+                        print(f"🆕 Cache de parada atualizado: {self._cache_parada[camera_id]}")
+
+                    else:
+                        print("🔄 Mesma data do último data_received. Verificando encerramento de turno...")
+                       
+                        shifts = self._cache_setupoee[camera_id].shifts
+                        encontrou_turno = False
+                        for turno in shifts:
+                            dias_validos = [DIAS_SEMANA[d] for d in turno['days']]
+                            if self.agora.weekday() not in dias_validos:
+                                continue
+
+                            turno_inicio = datetime.combine(self.agora.date(), str_para_time(turno['startTime']))
+                            turno_fim = datetime.combine(self.agora.date(), str_para_time(turno['endTime']))
+
+                            print(f"🕓 Verificando turno: {turno['name']} - Início: {turno_inicio}, Fim: {turno_fim}")
+                            print(f"🔍 Last parada: {ultima_analise_de_parada}, Last data received: {self.last_data_received}, Agora: {self.agora}")
+                            
+                            if turno_inicio <= self.last_data_received < turno_fim and self.agora >= turno_fim:
+                                print("✅ Turno atual terminou. Salvando parada.")
+                                await self._verificar_parada_planejada(
+                                    real_inicio=self.last_data_received,
+                                    real_fim=turno_fim,
+                                    camera_id=camera_id
+                                )
+                                self._cache_parada[camera_id] = turno_fim
+                                print(f"🆕 Cache de parada atualizado após fim de turno: {self._cache_parada[camera_id]}")
+                                encontrou_turno = True
+                                break
+
+                        if not encontrou_turno:
+                            print("⚠️ Nenhum turno finalizado identificado para salvar parada.")
+
+    async def verificar_paradas_no_inicio_do_turno(self, camera_id):
+        shifts = self._cache_setupoee[camera_id].shifts
+        stop_time = timedelta(seconds=self._cache_setupoee[camera_id].stop_time)
+
+        for turno in shifts:
+            dias_validos = [DIAS_SEMANA[d] for d in turno['days']]
+            if self.agora.weekday() not in dias_validos:
+                continue
+
+            turno_inicio = datetime.combine(self.agora.date(), str_para_time(turno['startTime']))
+            turno_fim = datetime.combine(self.agora.date(), str_para_time(turno['endTime']))
+
+            if turno_inicio <= self.agora <= turno_fim:
+                # Produção ainda não começou no turno
+                if self.last_data_received < turno_inicio:
+                    tempo_sem_producao = self.agora - turno_inicio
+                    if tempo_sem_producao >= stop_time:
+                        # Só registra o início uma vez
+                        if camera_id not in self._inicio_parada_turno:
+                            print(f"⏸️ Turno começou sem produção. Início de possível parada registrado: {turno_inicio}")
+                            self._inicio_parada_turno[camera_id] = turno_inicio
+                else:
+                    # Produção voltou após início do turno sem produção
+                    if camera_id in self._inicio_parada_turno:
+                        print(f"🟢 Produção retornou. Salvando parada de {self._inicio_parada_turno[camera_id]} até {self.last_data_received}")
+                        await self._verificar_parada_planejada(
+                            real_inicio=self._inicio_parada_turno[camera_id],
+                            real_fim=self.last_data_received,
+                            camera_id=camera_id
+                        )
+                        self._cache_parada[camera_id] = self.last_data_received
+                        del self._inicio_parada_turno[camera_id]
+
 
     
+    def dividir_parada_por_turno(self, inicio: datetime, fim: datetime, shifts: List[Dict]) -> List[Dict[str, datetime]]:
+        """
+        Divide uma parada que atravessa um ou mais turnos em múltiplas paradas alinhadas aos limites dos turnos.
+        Retorna uma lista com dicionários {'start': ..., 'end': ...}
+        """
+        partes = []
+        data = inicio.date()
+        while data <= fim.date():
+            for turno in shifts:
+                dias_validos = [DIAS_SEMANA[d] for d in turno['days']]
+                if data.weekday() not in dias_validos:
+                    continue
+
+                turno_inicio = datetime.combine(data, str_para_time(turno['startTime']))
+                turno_fim = datetime.combine(data, str_para_time(turno['endTime']))
+
+                # Ignora turnos fora do intervalo da parada
+                if turno_fim <= inicio or turno_inicio >= fim:
+                    continue
+
+                parte_inicio = max(inicio, turno_inicio)
+                parte_fim = min(fim, turno_fim)
+
+                if parte_inicio < parte_fim:
+                    partes.append({'start': parte_inicio, 'end': parte_fim})
+            data += timedelta(days=1)
+
+        # Caso a parada não tenha batido em nenhum turno (fim de semana, etc)
+        if not partes:
+            partes.append({'start': inicio, 'end': fim})
+        return partes
+
+
     async def process_autooee(self, camera_id: int):
         turnos_pendentes = self.verificar_turnos_pendentes(camera_id)
         for turno in turnos_pendentes:
@@ -348,13 +443,16 @@ class ServicoOEE:
 
                 if fim_turno <= ultimo_auto_oee:
                     continue  # já registrado
-                
-                # ✅ VERIFICA SE O LAST_DIGEST É MAIOR QUE O TURNO
+
                 # ✅ VERIFICA SE O LAST_DIGEST ESTÁ DENTRO DO TURNO
+                # ✅ VERIFICA SE O LAST_DIGEST É MAIOR QUE O TURNO
                 #if self._cache_digest[camera_id] is None or not (inicio_turno <= self._cache_digest[camera_id] <= fim_turno):
-                if self._cache_digest[camera_id] is None or (self._cache_digest[camera_id] < fim_turno):
+                if self._cache_digest[camera_id] is None or (self._cache_digest[camera_id] <= fim_turno):
                     print(f"[camera_id:{camera_id}] Ignorando turno {shift['name']} de {inicio_turno} a {fim_turno} pois last_digest ({self._cache_digest[camera_id]}) não está dentro.")
                     continue
+                else:
+                    print(f"Auto OEE de turno {shift['name']} de {inicio_turno} a {fim_turno}")
+                    print(f"last digest {self._cache_digest[camera_id]}")
 
                 if fim_turno <= agora:
                     # turno já passou e ainda não foi registrado

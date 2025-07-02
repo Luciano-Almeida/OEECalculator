@@ -1,15 +1,10 @@
 from datetime import datetime, timedelta
 
 from sqlalchemy import text
-from .external_database_connection import ExternalDatabaseConnection
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
 from database.db.conexao_db_externo import get_external_db
 
-external_db = ExternalDatabaseConnection()
-
-#START_ANALISE="'2025-03-13 08:00:00'",
-#STOP_ANALISE = "'2025-04-01 13:00:00'"
 
 async def fetch_paradas(db: AsyncSession, PARADA_TIME_STOP = 60):
     """
@@ -50,8 +45,6 @@ async def fetch_paradas(db: AsyncSession, PARADA_TIME_STOP = 60):
         FROM ordered_data
         WHERE EXTRACT(EPOCH FROM ("timestamp" - prev_timestamp)) > :parada_time_stop;
     """)
-
-    #resultado = external_db.execute_query(query_parada, {'parada_time_stop': PARADA_TIME_STOP})
     
     try:
         result = await db.execute(query_parada, {
@@ -64,8 +57,6 @@ async def fetch_paradas(db: AsyncSession, PARADA_TIME_STOP = 60):
     except Exception as e:
         print("❌ Erro ao executar query de paradas:", str(e))
         raise e
-
-    #return resultado
 
 
 async def fetch_paradas_after_init_date(db: AsyncSession, INIT='2025-06-09 15:00:00', PARADA_TIME_STOP=60):
@@ -89,29 +80,6 @@ async def fetch_paradas_after_init_date(db: AsyncSession, INIT='2025-06-09 15:00
             - camera_name_id (str): Identificador da câmera.
             - intervalo (float): Duração da parada em segundos.
     """
-    
-    '''query_parada_antiga_com_loteID = text("""
-    WITH ordered_data AS (
-        SELECT 
-            "timestamp", 
-            "lote_id", 
-            "camera_name_id", 
-            LAG("timestamp") OVER (
-                PARTITION BY "lote_id", "camera_name_id" 
-                ORDER BY "timestamp"
-            ) AS prev_timestamp
-        FROM "data_received"
-        WHERE "timestamp" > :init_date
-    )
-    SELECT 
-        prev_timestamp AS startTime,
-        "timestamp" AS stopTime,
-        "lote_id", 
-        "camera_name_id",
-        EXTRACT(EPOCH FROM ("timestamp" - prev_timestamp)) AS intervalo
-    FROM ordered_data
-    WHERE EXTRACT(EPOCH FROM ("timestamp" - prev_timestamp)) > :parada_time_stop;
-    """)'''
 
     # Certifique-se que INIT está no formato datetime, se necessário
     if isinstance(INIT, str):
@@ -142,10 +110,6 @@ async def fetch_paradas_after_init_date(db: AsyncSession, INIT='2025-06-09 15:00
     WHERE EXTRACT(EPOCH FROM ("timestamp" - prev_timestamp)) > :parada_time_stop;
     """)
 
-    #resultado = external_db.execute_query(query_parada, {
-    #    'init_date': INIT,
-    #    'parada_time_stop': PARADA_TIME_STOP
-    #})
     try:
         result = await db.execute(query_parada, {
             "init_date": INIT,
@@ -158,8 +122,6 @@ async def fetch_paradas_after_init_date(db: AsyncSession, INIT='2025-06-09 15:00
     except Exception as e:
         print("❌ Erro ao executar query de paradas:", str(e))
         raise e
-
-    #return resultado
 
 
 
@@ -212,13 +174,7 @@ async def fetch_digest_data_from_datareceived(
         GROUP BY "lote_id", "camera_name_id";
         """)
 
-        
-        # Aqui você pode adicionar a lógica para executar a consulta `query_digest`
-        #print("query_digest", query_digest)  # Para visualizar a query gerada (remover ou ajustar conforme necessário)
-
         try:
-            # Executando a consulta (substitua 'external_db.execute_query' pela função real de execução)
-            #resultado = external_db.execute_query(query_digest)
             resultado = await db.execute(
             query_digest,
             {
@@ -272,7 +228,7 @@ async def fetch_all_digest_data_from_datareceived(
     query_limits = text("""
     SELECT MIN("timestamp") AS min_time, MAX("timestamp") AS max_time FROM "data_received";
     """)
-    #limits_result = external_db.execute_query(query_limits)
+
     resultado = await db.execute(query_limits)
     limits_result = resultado.fetchone()
     print("limits_result", limits_result)
@@ -373,8 +329,6 @@ async def get_last_timestamp_from_dataReceived_by_camera_id(
     """)
 
     try:
-        # Executando a query
-        #resultado = external_db.execute_query(query)
         resultado = await db.execute(
             query,
             {
@@ -393,62 +347,3 @@ async def get_last_timestamp_from_dataReceived_by_camera_id(
         print(f"Erro ao buscar último data_received: {e}")
 
 
-
-
-
-
-def fetch_paradas_copy():
-    PARADA_TIME_STOP = 60
-    query_parada = text("""WITH ordered_data AS ( 
-                        SELECT 
-                            "timestamp", 
-                            "lote_id", 
-                            "camera_name_id", 
-                            LAG("timestamp") OVER (
-                                PARTITION BY "lote_id", "camera_name_id" 
-                                ORDER BY "timestamp") AS prev_timestamp 
-                            FROM "data_received") 
-                        SELECT 
-                            prev_timestamp AS startTime, 
-                            "timestamp" AS stopTime, 
-                            "lote_id", 
-                            "camera_name_id", 
-                            EXTRACT(EPOCH FROM ("timestamp" - prev_timestamp)) AS intervalo 
-                        FROM ordered_data 
-                        WHERE EXTRACT(EPOCH FROM ("timestamp" - prev_timestamp)) > {PARADA_TIME_STOP};
-                        """)
-    resultado = external_db.execute_query(query_parada)
-    print('resultado yy', resultado)
-    return resultado
-
-def fetch_paradas_after_init_date_copy(INIT = '2024-12-01 00:00:00', PARADA_TIME_STOP = 60):
-    """ Identifica paradas no data_received filtrado por câmera e Lote, 
-        considerando apenas registros após uma data inicial (INIT). 
-        Retorna os intervalos de tempo entre registros consecutivos 
-        que excedem um tempo limite (PARADA_TIME_STOP).
-    """
-    query_parada = text("""
-    WITH ordered_data AS (
-        SELECT 
-            "timestamp", 
-            "lote_id", 
-            "camera_name_id", 
-            LAG("timestamp") OVER (
-                PARTITION BY "lote_id", "camera_name_id" 
-                ORDER BY "timestamp"
-            ) AS prev_timestamp
-        FROM "data_received"
-        WHERE "timestamp" > '{INIT}'
-    )
-    SELECT 
-        prev_timestamp AS startTime,
-        "timestamp" AS stopTime,
-        "lote_id", 
-        "camera_name_id",
-        EXTRACT(EPOCH FROM ("timestamp" - prev_timestamp)) AS intervalo
-    FROM ordered_data
-    WHERE EXTRACT(EPOCH FROM ("timestamp" - prev_timestamp)) > {PARADA_TIME_STOP};
-    """)
-
-    resultado = external_db.execute_query(query_parada)
-    return resultado
