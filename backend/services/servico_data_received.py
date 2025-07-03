@@ -58,7 +58,6 @@ async def fetch_paradas(db: AsyncSession, PARADA_TIME_STOP = 60):
         print("❌ Erro ao executar query de paradas:", str(e))
         raise e
 
-
 async def fetch_paradas_after_init_date(db: AsyncSession, INIT='2025-06-09 15:00:00', PARADA_TIME_STOP=60):
     """
     Identifica intervalos de parada em registros da tabela `data_received`.
@@ -122,6 +121,117 @@ async def fetch_paradas_after_init_date(db: AsyncSession, INIT='2025-06-09 15:00
     except Exception as e:
         print("❌ Erro ao executar query de paradas:", str(e))
         raise e
+
+async def fetch_paradas_between(
+    db: AsyncSession,
+    start_time='2025-06-09 15:00:00',
+    end_time='2025-06-09 20:00:00',
+    PARADA_TIME_STOP=60,
+    camera_name_id: str = None
+):
+    if isinstance(start_time, str):
+        start_time = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
+    if isinstance(end_time, str):
+        end_time = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
+    if isinstance(PARADA_TIME_STOP, timedelta):
+        PARADA_TIME_STOP = PARADA_TIME_STOP.total_seconds()
+
+    camera_filter = 'AND "camera_name_id" = :camera_name_id' if camera_name_id else ''
+
+    params = {
+        "start_time": start_time,
+        "end_time": end_time,
+        "parada_time_stop": PARADA_TIME_STOP,
+    }
+    if camera_name_id:
+        params["camera_name_id"] = camera_name_id
+
+    try:
+        # 1. Captura os registros ordenados com lag
+        query_main = text(f"""
+        WITH ordered_data AS (
+            SELECT 
+                "timestamp",  
+                "camera_name_id", 
+                LAG("timestamp") OVER (
+                    PARTITION BY "camera_name_id" 
+                    ORDER BY "timestamp"
+                ) AS prev_timestamp
+            FROM "data_received"
+            WHERE "timestamp" BETWEEN :start_time AND :end_time
+            {camera_filter}
+        )
+        SELECT 
+            prev_timestamp AS "startTime",
+            "timestamp" AS "stopTime",
+            "camera_name_id",
+            EXTRACT(EPOCH FROM ("timestamp" - prev_timestamp)) AS "intervalo"
+        FROM ordered_data
+        WHERE EXTRACT(EPOCH FROM ("timestamp" - prev_timestamp)) > :parada_time_stop
+        """)
+        result = await db.execute(query_main, params)
+        paradas = result.fetchall()
+
+        # 2. Verifica o primeiro e último timestamp do intervalo
+        query_bounds = text(f"""
+        SELECT 
+            MIN("timestamp") AS first_ts,
+            MAX("timestamp") AS last_ts
+        FROM "data_received"
+        WHERE "timestamp" BETWEEN :start_time AND :end_time
+        {camera_filter}
+        """)
+        bounds_result = await db.execute(query_bounds, params)
+        first_ts, last_ts = bounds_result.fetchone()
+
+        # Lista final de paradas
+        paradas_final = []
+
+        # Caso sem nenhum dado no período
+        if first_ts is None and last_ts is None:
+            paradas_final.append({
+                "startTime": start_time,
+                "stopTime": end_time,
+                "camera_name_id": camera_name_id,
+                "intervalo": (end_time - start_time).total_seconds()
+            })
+            return paradas_final
+
+        # Verifica parada no início
+        if (first_ts - start_time).total_seconds() > PARADA_TIME_STOP:
+            paradas_final.append({
+                "startTime": start_time,
+                "stopTime": first_ts,
+                "camera_name_id": camera_name_id,
+                "intervalo": (first_ts - start_time).total_seconds()
+            })
+
+        # Adiciona paradas encontradas pela CTE
+        for p in paradas:
+            paradas_final.append({
+                "startTime": p.startTime,
+                "stopTime": p.stopTime,
+                "camera_name_id": p.camera_name_id,
+                "intervalo": p.intervalo
+            })
+
+        # Verifica parada no final
+        if (end_time - last_ts).total_seconds() > PARADA_TIME_STOP:
+            paradas_final.append({
+                "startTime": last_ts,
+                "stopTime": end_time,
+                "camera_name_id": camera_name_id,
+                "intervalo": (end_time - last_ts).total_seconds()
+            })
+
+        return paradas_final
+
+    except Exception as e:
+        print("❌ Erro ao executar query de paradas:", str(e))
+        raise e
+
+
+
 
 
 
@@ -337,6 +447,41 @@ async def get_last_timestamp_from_dataReceived_by_camera_id(
         )
         resultado = resultado.fetchall()
         print("último timestamp da câmera fornecida", resultado)
+        # Verificando e retornando o resultado
+        if resultado:
+            return resultado[0][0]
+        else:
+            print(f"Nenhum timestamp encontrado para a câmera {CAMERA_NAME_ID}")
+            return None
+    except Exception as e:
+        print(f"Erro ao buscar último data_received: {e}")
+
+
+async def get_first_timestamp_from_dataReceived_by_camera_id(  
+                                                            db: AsyncSession,                                                          
+                                                            CAMERA_NAME_ID: int
+                                                            ):
+    """ 
+        Construindo a query para buscar o último timestamp da câmera fornecida
+    """
+
+    query = text("""
+    SELECT "timestamp" 
+    FROM "data_received"
+    WHERE "camera_name_id" = :camera_name_id
+    ORDER BY "timestamp"
+    LIMIT 1;
+    """)
+
+    try:
+        resultado = await db.execute(
+            query,
+            {
+                "camera_name_id": CAMERA_NAME_ID
+            }
+        )
+        resultado = resultado.fetchall()
+        print("primeiro timestamp da câmera fornecida", resultado)
         # Verificando e retornando o resultado
         if resultado:
             return resultado[0][0]
