@@ -69,6 +69,10 @@ const OEEDinamico = () => {
       if (response.data.autentication){
         atualizarUsuario(response.data.autentication);
       }
+      else{
+        console.log("Nenhum usuário ativo.");
+        return <div>Nenhum Usuário Ativo...</div>; // Ou um Spinner
+      }
 
     } catch (error) {
       console.error("Erro ao buscar os dados da API", error);
@@ -105,14 +109,27 @@ const OEEDinamico = () => {
   const turnoFim = format(new Date(responseData['shift_atual'][1]), 'HH:mm');
   const turnoTexto = `${turnoInicio} à ${turnoFim}`;
 
-  const paradas = [
-    { start: '2025-07-01T14:30:00', end: '2025-07-01T15:00:00' },
-    { start: '2025-07-01T16:15:00', end: '2025-07-01T16:45:00' },
-  ];
-
   if (!responseData['autentication']){
-    return <div>Nenhum Usuário Ativo...</div>; // Ou um Spinner
-  }
+    return (
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '80vh',
+      backgroundColor: '#f8d7da',
+      color: '#721c24',
+      fontWeight: 'bold',
+      fontSize: '1.2rem',
+      border: '1px solid #f5c6cb',
+      borderRadius: '8px',
+      padding: '20px',
+      boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+      textAlign: 'center'
+    }}>
+      Nenhum Usuário Ativo...
+    </div>
+  );
+  }  
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
