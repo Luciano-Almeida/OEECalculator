@@ -99,7 +99,7 @@ const GraficoTemporal = ({ discretizado, startTime = "08:00", endTime = "17:00",
     let closestDiff = Infinity;
 
     for (const d of data) {
-      const [h, m] = d.hora.split(':').map(Number);
+      const [h, m] = d.hora ? d.hora.split(':').map(Number) : [0, 0];  // Caso d.hora seja indefinido, assume [0, 0]
       const dataTime = set(now, { hours: h, minutes: m, seconds: 0, milliseconds: 0 });
       const diff = Math.abs(dataTime - targetTime);
 
@@ -111,6 +111,8 @@ const GraficoTemporal = ({ discretizado, startTime = "08:00", endTime = "17:00",
 
     return closestIndex;
   };
+
+  const isValidDate = (dateStr) => dateStr && !isNaN(Date.parse(dateStr));
 
   return (
     <ResponsiveContainer width="100%" height={400}>
@@ -132,12 +134,9 @@ const GraficoTemporal = ({ discretizado, startTime = "08:00", endTime = "17:00",
 
         {paradas
           .filter((parada) => {
-            const start = parseISO(parada.start_time);
-            const end = parseISO(parada.end_time);
-            return (
-              isBefore(start, endLimit) &&
-              isBefore(startLimit, end)
-            );
+            const start = isValidDate(parada.start_time) ? parseISO(parada.start_time) : null;
+            const end = isValidDate(parada.end_time) ? parseISO(parada.end_time) : null;
+            return start && end && isBefore(start, endLimit) && isBefore(startLimit, end);
           })
           .map((parada, idx) => {
             const x1 = getIndexFromTime(parada.start_time);
