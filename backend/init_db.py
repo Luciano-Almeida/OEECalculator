@@ -1,11 +1,8 @@
 import asyncio
-from datetime import datetime
-from sqlalchemy.exc import OperationalError, SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.exc import OperationalError
 
 from database.db import engine  # Certifique-se de usar o engine assíncrono
 from database.db import Base  # Importa o Base para criar as tabelas
-import database.crud as crud  # Importa as funções de criação do CRUD
 
 
 async def wait_for_db():
@@ -30,61 +27,6 @@ async def init_db():
     # Cria todas as tabelas (se não existirem)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-
-    # Insere os dados iniciais
-    async_session = async_sessionmaker(bind=engine, expire_on_commit=False, class_=AsyncSession)
-
-    async with async_session() as db:  # Gerenciador de contexto para a sessão assíncrona
-        try:
-            # Verifica se o setupOEE já existe
-            setupOEE_exists = await crud.get_oee_setup_by_id(db, oee_id=1)
-            if setupOEE_exists:
-                print("📷 Tabela setupOEE já possui registros. Nenhuma ação necessária.")
-            else:
-                # Insere o setup OEE inicial
-                user = "instalação"
-                stop_time = 60.0  # 60 segundos
-                line_speed = 60  # 120 unidades por minuto
-                digest_time = 60.0 # 60 segundos entre cada resumo 
-                camera_name_id = 2  # ID da câmera
-                #await crud.create_oee_setup(db, )
-                oee_setup = await crud.create_oee_setup(
-                    db=db, 
-                    user=user, 
-                    stop_time=stop_time, 
-                    line_speed=line_speed, 
-                    digest_time=digest_time,
-                    camera_name_id=camera_name_id,
-                    shifts=[
-                        {
-                        #"shift_id": 1,
-                        "name": "Manhã",
-                        "days": ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'],
-                        "startTime": "08:00",
-                        "endTime": "14:00"
-                        },
-                        {
-                        #"shift_id": 2,
-                        "name": "Noite",
-                        "days": ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'],
-                        "startTime": "14:00",
-                        "endTime": "19:00"
-                        }
-                    ]
-                )
-                print("✅ Dados iniciais inseridos na tabela setupOEE!")
-
-
-                # Insere um DigestData Inicial
-                
-
-                # Insere uma parada inicial
-
-                # Insere um AutoOEE inicial
-
-        except SQLAlchemyError as e:
-            await db.rollback()  # Reverte alterações no caso de erro
-            print(f"❌ Erro ao inicializar o banco de dados: {e}")
 
 
 if __name__ == "__main__":

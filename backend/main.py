@@ -1,20 +1,13 @@
 import asyncio
 from contextlib import asynccontextmanager
-import os
-from fastapi import FastAPI, Depends
-from pydantic import BaseModel
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from services import ServicoOEE
 from routers import api_router  # Importa o roteador centralizado
-from typing import Dict, List
 
-from database.db import get_db
-from database.db.conexao_db_externo import get_external_db
-from utils import parada_nao_planejada, producao, start_end_times
-
+from database.db import AsyncSessionLocal
+from database.db.conexao_db_externo import AsyncSessionLocalDB1
 from init_db import init_db
-
-#servico_oee = None
 
 
 @asynccontextmanager
@@ -24,17 +17,12 @@ async def lifespan(app: FastAPI):
     # Inicia o banco de dados
     await init_db()
 
-    # Cria o serviço OEE
-    #servico_oee = ServicoOEE()
 
     # Injeta uma sessão de banco no serviço
-    
     # Cria o serviço OEE já com os bancos
-    async for external_db in get_external_db():
-        async for db in get_db():
+    async with AsyncSessionLocalDB1() as external_db:
+        async with AsyncSessionLocal() as db:
             servico_oee = ServicoOEE(db=db, db_external=external_db)
-            break  # Pega uma sessão apenas
-        break
 
     app.state.servico_oee = servico_oee
 
@@ -63,7 +51,6 @@ async def lifespan(app: FastAPI):
 
 # Criação da aplicação com lifespan
 app = FastAPI(lifespan=lifespan)
-#app = FastAPI()
 
 
 # Configuração do CORSMiddleware para permitir requisições de http://localhost:3000
