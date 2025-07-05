@@ -1,5 +1,6 @@
 // src/Componentes/MainContent.jsx
 import React from 'react';
+import { useState, useEffect } from 'react';
 
 import Layout from '../Layout/Layout';
 import ApontarParadas from '../Pages/Paradas/ApontarParadas';
@@ -16,42 +17,65 @@ import TrilhaDeAuditoria from '../Pages/TrilhaDeAuditoria/TrilhaDeAuditoria';
 
 import { OEEProvider } from '../context/OEEContext';
 import { useAuditoria } from '../hooks/useAuditoria';
+import StatusSetup from '../Pages/Status/StatusSetup';
 
-function MainContent({ currentPage, setCurrentPage, open, setOpen }) {
+function MainContent({ currentPage, setCurrentPage, isOeeReady, reviewStatus, camerasFaltandoSetup }) {
   const { registrarAuditoria } = useAuditoria();
-
-  const handleClickOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
 
   const registrarAberturaTela = async (nomeTela) => {
     await registrarAuditoria(`TELA ${nomeTela}`.toUpperCase(), "Abertura da tela", "Acesso Permitido");
   };
 
-  const handleMenuClick = (page) => {
-    if (page === 'ApontarParadas') {
-      handleClickOpen();
-    } else {
-      setCurrentPage(page);
-      setOpen(false);
-      registrarAberturaTela(page);
+  useEffect(() => {
+    console.log('chamando useeffect isOeeReady', isOeeReady)
+    if (isOeeReady === false) {
+      setCurrentPage('CheckStatusSetup');
     }
+    else {
+      setCurrentPage('OEEDinamico');
+    }
+  }, [isOeeReady]);
+
+  const handleMenuClick = (page) => {
+    setCurrentPage(page);
+    registrarAberturaTela(page);
+  };
+  
+
+  const renderPageBasedOnOeeStatus = () => {
+    if (isOeeReady === false) {
+      //return <StatusSetup onReviewStatus={reviewStatus} />;
+      return (
+        <>
+          {currentPage === 'CheckStatusSetup' && <StatusSetup onReviewStatus={reviewStatus} camerasFaltandoSetup={camerasFaltandoSetup} />}
+          {currentPage === 'OEESetup' && <TesteOEESetup />}
+          {currentPage === 'ParadasSetup' && <StopTypesManagement />}
+        </>
+      )
+    }
+
+    if (isOeeReady === true) {
+      return (
+        <>
+          {currentPage === 'OEEDinamico' && <OEEDinamico />}
+          {currentPage === 'Paradas' && <ApontarParadas />}
+          {currentPage === 'OEESearch' && <OEESearch />}
+          {currentPage === 'Relatorio' && <Relatorio />}
+          {currentPage === 'OEESetup' && <TesteOEESetup />}
+          {currentPage === 'ParadasSetup' && <StopTypesManagement />}
+          {currentPage === 'TrilhaDeAuditoria' && <TrilhaDeAuditoria />}
+        </>
+      );
+    }
+
+    // Se isOeeReady ainda for null (ex: erro), retorna algo padrão ou nada
+    return <div>Erro ao carregar status.</div>;
   };
 
   return (
-    <Layout onMenuClick={handleMenuClick}>
+    <Layout onMenuClick={handleMenuClick} isOeeReady={isOeeReady}>
       <OEEProvider>
-        {currentPage === 'OEEDinamico' && <OEEDinamico />}
-        {currentPage === 'Voltar' && <OEEDinamico />}
-        {currentPage === 'Paradas' && <ApontarParadas />}
-        {currentPage === 'OEESearch' && <OEESearch />}
-        {currentPage === 'Relatorio' && <Relatorio />}
-        {currentPage === 'OEESetup' && <TesteOEESetup />}
-        {currentPage === 'ParadasSetup' && <StopTypesManagement />}
-        {currentPage === 'TrilhaDeAuditoria' && <TrilhaDeAuditoria />}
-
-        {currentPage !== 'ApontarParadas' && (
-          <ApontarParadasPopUp open={open} onClose={handleClose} />
-        )}
+        {renderPageBasedOnOeeStatus()}
       </OEEProvider>
     </Layout>
   );

@@ -11,7 +11,7 @@ from database.models import AutoOEE, OEESetup, DigestData, PlannedDowntimeSetup
 import schemas as schemas
 from services.servico_data_received import fetch_paradas_after_init_date, fetch_paradas, fetch_paradas_between, fetch_digest_data_from_datareceived, fetch_all_digest_data_from_datareceived, get_last_timestamp_from_dataReceived_by_camera_id, get_first_timestamp_from_dataReceived_by_camera_id
 from services import oee_by_period
-from utils import DIAS_SEMANA
+from utils import DIAS_SEMANA, obter_status_do_setup
 
 def str_para_time(hora_str: str) -> time:
     """Converte string no formato 'HH:MM' para objeto datetime.time."""
@@ -46,6 +46,9 @@ class ServicoOEE:
         self.agora = None  # centraliza a hora atual de cada running
 
     async def iniciar(self):
+        print("######### Testando se setups OEE estão corretos ########")
+        await self.verificar_setup_antes_de_executar()
+        
         print("######### Iniciando variáveis cacheadas... #########", flush=True)
         # busca todos shifts de todas as câmeras
         await self._listar_setup_por_camera()
@@ -130,6 +133,12 @@ class ServicoOEE:
 
 
     # Métodos Pirncipais
+    async def verificar_setup_antes_de_executar(self):
+        status = await obter_status_do_setup(self.db_session)
+        while not status["oee_ready"]:
+            print(f"Setup incompleto. Serviço OEE aguardando configuração da(s) câmera(s) {status['cameras_faltando_setup']}.")       
+            await asyncio.sleep(self._interval)      
+
     async def process_digest_data(self, camera_id: int, start: datetime, end: datetime=None):
         """ chama a partir de no mímino um periodo mínimo de self._digest_time[camera_id]
             mas se não hover produção será um período maior

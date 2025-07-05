@@ -10,6 +10,7 @@ from .oee import router as oee_router
 from .paradas import router as paradas_router
 from .setup_paradas import router as setup_paradas_router
 from .setup_oee import router as setup_oee_router
+from .status import router as status_router
 
 
 # Criar um objeto APIRouter para centralizar todas as rotas
@@ -26,4 +27,5 @@ api_router.include_router(oee_router, tags=["oee_router"])
 api_router.include_router(paradas_router, tags=["paradas_router"])
 api_router.include_router(setup_oee_router, tags=["setup_oee_router"])
 api_router.include_router(setup_paradas_router, tags=["setup_paradas_router"])
+api_router.include_router(status_router, tags=["status_router"])
 

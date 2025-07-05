@@ -16,9 +16,16 @@ import botaoOeeSetup from '../assets/novos/Botao_OEE_Setup3.png'
 import botaoParadas from '../assets/novos/Botao_Paradas3.png' 
 import botaoParadaSetup from '../assets/novos/Botao_Parada_Setup.png' 
 import botaoConsulta from '../assets/novos/Botao_Consulta.png'
+import botaoCheckStatusSetup from '../assets/novos/Botao_Check_Status_Setup.png'
 import { useAuth } from '../context/AuthContext';
 
 const MENU_ITEMS = [
+  {
+    label: 'Check Status',
+    icon: botaoCheckStatusSetup,
+    permissao: 'OEE.CHECK_STATUS_SETUP',
+    action: 'CheckStatusSetup',
+  },
   {
     label: 'OEE',
     icon: botaoOee,
@@ -60,10 +67,10 @@ const MENU_ITEMS = [
     icon: botaoVoltar,
     permissao: 'acessar_voltar', // ou nenhuma permissão, se for sempre visível
     action: 'Voltar',
-  */},
+  */}
 ];
 
-const Layout = ({ children, onMenuClick}) => {
+const Layout = ({ children, onMenuClick, isOeeReady  }) => {
   const [currentTime, setCurrentTime] = useState('');
   const { usuario, carregando, atualizarUsuario } = useAuth();
 
@@ -85,6 +92,16 @@ const Layout = ({ children, onMenuClick}) => {
   if (carregando) {
     return <div>Carregando autenticação...</div>; // Ou um Spinner
   }
+
+  // Filtrando os itens de menu com base no estado de OEE
+  const filteredMenuItems = MENU_ITEMS.filter(item => {
+    if (isOeeReady) {
+      return usuario?.permissoes?.includes(item.permissao);
+    } else {
+      // Se não estiver pronto, só mostra as permissões de setup e check status setup
+      return ['OEE.PARADAS_SETUP', 'OEE.OEE_SETUP', 'OEE.CHECK_STATUS_SETUP'].includes(item.permissao);
+    }
+  });
 
   return (
     <div className="app-container">
@@ -118,14 +135,12 @@ const Layout = ({ children, onMenuClick}) => {
 
       {/* Menu lateral */}
       <div className="sidebar">
-        {MENU_ITEMS.map((item) => 
-          usuario?.permissoes?.includes(item.permissao) ? (
-            <div className='menu-item' key={item.label} onClick={() => onMenuClick(item.action)}>
-              <img src={item.icon} alt={`Ícone ${item.label}`} />
-              <p>{item.label}</p>
-            </div>
-          ) : null
-        )}
+        {filteredMenuItems.map(item => (
+          <div className="menu-item" key={item.label} onClick={() => onMenuClick(item.action)}>
+            <img src={item.icon} alt={`Ícone ${item.label}`} />
+            <p>{item.label}</p>
+          </div>
+        ))}
       </div>
 
     </div>
