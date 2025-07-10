@@ -20,6 +20,7 @@ def str_para_time(hora_str: str) -> time:
 class ServicoOEE:
     def __init__(self, intervalo: float = 60.0, db_external: AsyncSession = None, db: AsyncSession = None):#, db: AsyncSession = Depends(get_db)):      
         self._running = False
+        self._memo_interval = intervalo
         self._interval = intervalo  # segundos entre cada verificação
         self.db_session = db
         self.db_external = db_external
@@ -105,8 +106,16 @@ class ServicoOEE:
                         last_digest = self._cache_digest[camera_id]
                         if last_digest:
                             intervalo_ate_ultimo_digest = self.agora - last_digest
-                            self.digest_time_control[camera_id] = intervalo_ate_ultimo_digest - intervalo_ate_ultimo_data_received  #
-                            if self.digest_time_control[camera_id] > self._digest_time[camera_id]:                                
+                            self.digest_time_control[camera_id] = intervalo_ate_ultimo_digest - intervalo_ate_ultimo_data_received  #                            
+                            
+                            # verificar se existe muitos dados antigos e acelerar caso afirmativo
+                            if self.digest_time_control[camera_id].total_seconds() > 600: # mais de 10 minutos atrasados
+                                self._interval = 2  # acelerando para consumir dados antigos
+                            else:
+                                self._interval = self._memo_interval
+                            
+                            # processar dados 
+                            if self.digest_time_control[camera_id] > self._digest_time[camera_id]:                                                                
                                 await self.process_digest_data(camera_id, start=last_digest)
                         else:
                             await self.process_digest_data(camera_id, start=last_digest)
@@ -138,8 +147,7 @@ class ServicoOEE:
         status = await obter_status_do_setup(self.db_session)
         while not status["oee_ready"]:
             status = await obter_status_do_setup(self.db_session)
-            print(f"Setup incompleto. Serviço OEE aguardando configuração da(s) câmera(s) {status['cameras_faltando_setup']}.")       
-            await asyncio.sleep(self._interval)      
+            print(f"Setup incompleto. Serviço OEE aguardando configuração da(s) câmera(s) {status['cameras_faltando_setup']}.")          
 
     async def process_digest_data(self, camera_id: int, start: datetime, end: datetime=None):
         """ chama a partir de no mímino um periodo mínimo de self._digest_time[camera_id]
