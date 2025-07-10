@@ -1,5 +1,5 @@
 from datetime import datetime, time, timedelta
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, List, Optional, Tuple
 
@@ -13,7 +13,7 @@ from database.db.conexao_db_externo import get_external_db
 from database.models import OEESetup, PlannedDowntime, UnplannedDowntime, Paradas, AutoOEE, PlannedDowntimeSetup
 import schemas as schemas
 from services import get_authenticated_user_data
-from utils import DIAS_SEMANA
+from utils import DIAS_SEMANA, calcular_status_digest
 
 router = APIRouter()
 
@@ -126,6 +126,7 @@ def formatar_paradas_planejadas(paradas_raw: List, data_base: datetime) -> List[
 async def get_oee(
     hora_atual: datetime, 
     camera_name_id: int, 
+    request: Request,
     db: AsyncSession = Depends(get_db),
     external_db: AsyncSession = Depends(get_external_db)
 ):
@@ -167,11 +168,17 @@ async def get_oee(
     setup_paradas_planejadas_raw = await crud.get_all_planned_downtime_setups(db)
     setup_paradas_planejadas = formatar_paradas_planejadas(setup_paradas_planejadas_raw, inicio)
 
-    # 6. Monta resposta
+    # 6. Digest status
+    servico_oee = request.app.state.servico_oee
+    status_digest = calcular_status_digest(servico_oee, camera_id=camera_name_id)
+
+    # 7. Monta resposta
     oee_data["autentication"] = user
     oee_data["shift_atual"] = shift_atual
     oee_data["setup_paradas_planejadas"] = setup_paradas_planejadas
     oee_data["discretizado"] = discretized_history
+    oee_data["statusDigest"] = status_digest.model_dump()
+    
     return oee_data
 
 

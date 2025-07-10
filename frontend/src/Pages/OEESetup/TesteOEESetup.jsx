@@ -161,8 +161,18 @@ const TesteOEESetup = () => {
         alert('✅ Configuração atualizada com sucesso!');
         registro("SALVAR CONFIGURAÇÃO", `Setup atualizado com ID: ${setupId}`);
       } else {
-        alert('⚠️ Nenhum setup carregado para atualizar!');
-        registro("ERRO", "Tentativa de salvar sem setup carregado");
+        // Chamar rota de criação
+        const res = await fetch('http://localhost:8000/create-oee-setup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) throw new Error('Erro ao criar nova configuração');
+        const created = await res.json();
+        setSetupId(created.id); // Salva novo ID
+        alert('✅ Nova configuração criada com sucesso!');
+        registro("CRIAR CONFIGURAÇÃO", `Setup criado com ID: ${created.id}`);
       }
     } catch (err) {
       console.error(err);

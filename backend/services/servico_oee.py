@@ -37,6 +37,7 @@ class ServicoOEE:
         self._cache_setup_parada_planejada: Dict[int, PlannedDowntimeSetup] = {}
         self._inicio_parada_turno: Dict[int, datetime] = {}
         self._oee_atual: Dict[int, Any] = {}  # dados atuais do OEE por shift_id
+        self.digest_time_control: Dict[int, Any] = {} # digest time control por câmera
 
         # Adicionando lock por camera_id
         self._locks: Dict[int, asyncio.Lock] = {}
@@ -104,8 +105,8 @@ class ServicoOEE:
                         last_digest = self._cache_digest[camera_id]
                         if last_digest:
                             intervalo_ate_ultimo_digest = self.agora - last_digest
-                            digest_time_control = intervalo_ate_ultimo_digest - intervalo_ate_ultimo_data_received#
-                            if digest_time_control > self._digest_time[camera_id]:                                
+                            self.digest_time_control[camera_id] = intervalo_ate_ultimo_digest - intervalo_ate_ultimo_data_received  #
+                            if self.digest_time_control[camera_id] > self._digest_time[camera_id]:                                
                                 await self.process_digest_data(camera_id, start=last_digest)
                         else:
                             await self.process_digest_data(camera_id, start=last_digest)
@@ -136,6 +137,7 @@ class ServicoOEE:
     async def verificar_setup_antes_de_executar(self):
         status = await obter_status_do_setup(self.db_session)
         while not status["oee_ready"]:
+            status = await obter_status_do_setup(self.db_session)
             print(f"Setup incompleto. Serviço OEE aguardando configuração da(s) câmera(s) {status['cameras_faltando_setup']}.")       
             await asyncio.sleep(self._interval)      
 

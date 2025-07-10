@@ -1,5 +1,5 @@
 // src/components/OEEDinamico.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { format } from "date-fns";
@@ -11,6 +11,7 @@ import ProductionChart from '../Graficos/ProductionChart';
 import GraficoCustomPieChart2 from '../Graficos/GraficoCustomPieChart2';
 import { useAuditoria } from '../../hooks/useAuditoria';
 import { useAuth } from '../../context/AuthContext';
+import DigestStatusProgressBar from './DigestStatusProgressBar';
 
 // Cores para os gráficos
 const COLORS = ["#229752", '#1f8a4c', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
@@ -22,6 +23,7 @@ const OEEDinamico = () => {
   const [responseData, setResponseData] = useState(null);
   const { registrarAuditoria } = useAuditoria();
   const { atualizarUsuario } = useAuth();
+  const digestTotalRef = useRef(null); // Armazena o valor inicial do digest atrasado
 
   const registrarAberturaTela = async () => {
     await registrarAuditoria("TELA OEE DINÂMICO", "Pesquisa OEE", "Acesso Permitido");
@@ -65,6 +67,12 @@ const OEEDinamico = () => {
       setResponseData(response.data);
       console.log(response.data);
 
+      // salva valor de referencia para o progress bar
+      if (response.data.statusDigest?.status === "atrasado" && digestTotalRef.current === null) {
+        digestTotalRef.current = response.data.statusDigest.digest_time_control;
+      }
+      
+
       // Atualiza o usuário
       if (response.data.autentication){
         atualizarUsuario(response.data.autentication);
@@ -92,6 +100,18 @@ const OEEDinamico = () => {
   
   if (!responseData) {
     return <div>Carregando...</div>;
+  }
+
+  // Se digest estiver atrasado ou aguardando, mostra apenas o componente de progresso
+  if (responseData.statusDigest?.status === "atrasado" || responseData.statusDigest?.status === "aguardando"){
+    return (
+      <div style={{ padding: '20px' }}>
+        <DigestStatusProgressBar 
+          statusDigest={responseData.statusDigest} 
+          digestTotal={digestTotalRef.current}
+        />
+      </div>
+    );
   }
 
 

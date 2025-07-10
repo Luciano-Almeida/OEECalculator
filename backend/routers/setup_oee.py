@@ -48,9 +48,9 @@ async def get_oee_setup_by_camera_name_id(camera_name_id: int, db: AsyncSession 
 
 
 # 📌 POST
-@router.post("/post_oee-setup", response_model=schemas.CREATEOEESetupSchema)
+@router.post("/create-oee-setup", response_model=schemas.CREATEOEESetupSchema)
 async def create_oee_setup_route(
-    request: schemas.CREATEOEESetupSchema,
+    data: schemas.CREATEOEESetupSchema,
     db: AsyncSession = Depends(get_db)
 ):
     """ Exemplo de dados 
@@ -82,14 +82,14 @@ async def create_oee_setup_route(
     try:
         oee = await crud.create_oee_setup(
             db=db,
-            user=request.user,
-            stop_time=request.stop_time,
-            line_speed=request.line_speed,
-            digest_time=request.digest_time,
-            camera_name_id=request.camera_name_id,
-            shifts=[shift.dict() for shift in request.shifts] if request.shifts else None
+            user=data.user,
+            stop_time=data.stop_time,
+            line_speed=data.line_speed,
+            digest_time=data.digest_time,
+            camera_name_id=data.camera_name_id,
+            shifts=[shift.model_dump() for shift in data.shifts] if data.shifts else None
         )
-        return request  # ou algum response customizado com o que foi criado
+        return data  # ou algum response customizado com o que foi criado
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -104,7 +104,11 @@ async def delete_oee_setup_route(id: int, db: AsyncSession = Depends(get_db)):
 
 # 📌 UPDATE
 @router.put("/update-oee-setup/{setup_id}", response_model=dict)
-async def update_oee_setup_route(setup_id: int, data: schemas.CREATEOEESetupSchema, db: AsyncSession = Depends(get_db)):
+async def update_oee_setup_route(
+    setup_id: int, 
+    data: schemas.CREATEOEESetupSchema, 
+    db: AsyncSession = Depends(get_db)
+):
     print('setup_id', setup_id)
     print('data', data)
     try:
