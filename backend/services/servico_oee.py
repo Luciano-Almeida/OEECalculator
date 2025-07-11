@@ -148,6 +148,8 @@ class ServicoOEE:
         while not status["oee_ready"]:
             status = await obter_status_do_setup(self.db_session)
             print(f"Setup incompleto. Serviço OEE aguardando configuração da(s) câmera(s) {status['cameras_faltando_setup']}.")          
+            # Espera um intervalo até a próxima análise        
+            await asyncio.sleep(self._interval)
 
     async def process_digest_data(self, camera_id: int, start: datetime, end: datetime=None):
         """ chama a partir de no mímino um periodo mínimo de self._digest_time[camera_id]
