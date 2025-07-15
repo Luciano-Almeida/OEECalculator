@@ -82,9 +82,6 @@ def get_current_or_previous_shift(hora_atual: datetime, shifts: List[schemas.Shi
         logger.debug(" Nenhum turno anterior encontrado.")
 
     return latest_shift_times
- 
-from typing import List
-from datetime import datetime, timedelta
 
 def formatar_paradas_planejadas(paradas_raw: List, data_base: datetime) -> List[dict]:
     paradas_formatadas = []
@@ -100,8 +97,8 @@ def formatar_paradas_planejadas(paradas_raw: List, data_base: datetime) -> List[
             stop_dt += timedelta(days=1)  # Caso a parada cruze a meia-noite
 
         paradas_formatadas.append({
-            "start": start_dt.isoformat(),
-            "end": stop_dt.isoformat(),
+            "start_time": start_dt.isoformat(),
+            "end_time": stop_dt.isoformat(),
             "name": parada.name  # opcional, caso queira exibir tooltip/legenda
         })
 
