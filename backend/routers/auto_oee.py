@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, List
@@ -11,6 +12,9 @@ import schemas as schemas
 
 # Importando as classes do SQLAlchemy
 from database.models import OEESetup, PlannedDowntime, UnplannedDowntime, Paradas, AutoOEE, PlannedDowntimeSetup
+
+# Logger específico
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
  
@@ -28,7 +32,7 @@ async def get_auto_oee(
     - **fim**: Data e hora de fim para o filtro de OEE.
     - **camera_name_id**: ID da câmera.
     """
-    print(f"Auto OEE init {inicio}, fim {fim}, camera {camera_name_id}")
+    logger.info(f"Auto OEE init {inicio}, fim {fim}, camera {camera_name_id}")
     
     oees = await crud.get_auto_oee_by_period_and_camera(
         db=db, inicio_pesquisa=inicio, 

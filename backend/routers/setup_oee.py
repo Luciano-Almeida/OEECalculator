@@ -1,4 +1,5 @@
 from datetime import date, datetime, time
+import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
@@ -11,9 +12,10 @@ import database.crud as crud
 from database.models import OEESetup, PlannedDowntime, UnplannedDowntime, Paradas, AutoOEE, PlannedDowntimeSetup
 import schemas as schemas
 
+# Logger específico
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
-
-
 
 # 📌 GET
 @router.get("/all-oee-setup", response_model=List[schemas.OEESetupSchema])
@@ -109,8 +111,6 @@ async def update_oee_setup_route(
     data: schemas.CREATEOEESetupSchema, 
     db: AsyncSession = Depends(get_db)
 ):
-    print('setup_id', setup_id)
-    print('data', data)
     try:
         updated_data = {
             "user": data.user,
@@ -120,11 +120,11 @@ async def update_oee_setup_route(
             "camera_name_id": data.camera_name_id,
             "shifts": [shift.dict() for shift in data.shifts] if data.shifts else None
         }
-        print('updated_data', updated_data)
+
         updated = await crud.update_oee_setup(db, record_id=setup_id, data=updated_data)
         if not updated:
             raise HTTPException(status_code=404, detail="OEESetup not found")
-        print('updated', updated)
+
         return updated
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

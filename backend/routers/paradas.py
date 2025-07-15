@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any, Dict, List
@@ -9,6 +10,9 @@ import database.crud as crud
 import schemas as schemas
 
 from database.crud import create_parada
+
+# Logger específico
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -31,7 +35,7 @@ async def create_parada_endpoint(db: AsyncSession = Depends(get_db)):
         new_parada = await create_parada(db=db, start=start, stop=stop, camera_name_id=1)
         
         # Exibe ou faz algo com a parada criada
-        print(f"Parada criada: {new_parada}")
+        logger.debug(f"Parada criada: {new_parada}")
     # Chama a função de criação de parada passando a sessão do db
     return "ok"
 
@@ -65,7 +69,7 @@ async def filtrar_paradas(
     fim: datetime,
     db: AsyncSession = Depends(get_db)
 ):
-    print(f"Realizando a pesquisa por camera {camera_name_id} - Inicio {inicio} - fim {fim}")
+    logger.debug(f"Realizando a pesquisa por camera {camera_name_id} - Inicio {inicio} - fim {fim}")
     return await crud.get_paradas_com_tipo(db, inicio, fim, camera_name_id)
 
 @router.get("/paradas_planejadas/", response_model=List[schemas.PlannedDowntimeSchema])#, response_model=List[str])
@@ -122,7 +126,7 @@ async def resumo_paradas_by_period(
 @router.post("/create_parada_nao_planejada/", response_model=schemas.UnplannedDowntimeSchema)
 async def post_setup_paradas_nao_planejadas(data: schemas.CreateUnplannedDowntimeSchema, db: AsyncSession = Depends(get_db)):
     try:
-        print('Data create_parada_nao_planejada', data)
+        logger.info(f'Data create_parada_nao_planejada {data}')
         # Criando o novo setup no banco de dados
         new_setup = await crud.create_unplanned_downtime(
             db=db,
@@ -138,7 +142,7 @@ async def post_setup_paradas_nao_planejadas(data: schemas.CreateUnplannedDowntim
 @router.post("/create_parada_planejada/", response_model=schemas.PlannedDowntimeSchema)
 async def post_setup_paradas_planejadas(data: schemas.CreatePlannedDowntimeSchema, db: AsyncSession = Depends(get_db)):
     try:
-        print('Data create_parada_planejada', data)
+        logger.info(f'Data create_parada_planejada {data}')
         # Criando o novo setup no banco de dados
         new_setup = await crud.create_planned_downtime(
             db=db,

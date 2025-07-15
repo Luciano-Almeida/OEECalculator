@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime, time, timedelta
+import logging
 from typing import Dict, Any, List
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +13,9 @@ import schemas as schemas
 from services.servico_data_received import fetch_paradas_after_init_date, fetch_paradas, fetch_paradas_between, fetch_digest_data_from_datareceived, fetch_all_digest_data_from_datareceived, get_last_timestamp_from_dataReceived_by_camera_id, get_first_timestamp_from_dataReceived_by_camera_id
 from services import oee_by_period
 from utils import DIAS_SEMANA, obter_status_do_setup
+
+# Logger específico
+logger = logging.getLogger("serviço OEE")
 
 def str_para_time(hora_str: str) -> time:
     """Converte string no formato 'HH:MM' para objeto datetime.time."""
@@ -48,16 +52,16 @@ class ServicoOEE:
         self.agora = None  # centraliza a hora atual de cada running
 
     async def iniciar(self):
-        print("######### Testando se setups OEE estão corretos ########")
+        logger.info("######### Testando se setups OEE estão corretos ########")
         await self.verificar_setup_antes_de_executar()
         
-        print("######### Iniciando variáveis cacheadas... #########", flush=True)
+        logger.info("######### Iniciando variáveis cacheadas... #########")
         # busca todos shifts de todas as câmeras
         await self._listar_setup_por_camera()
 
         # Para cada câmera
         for camera_id in list(self._cache_setupoee.keys()):
-            print(f"Iniciando camera {camera_id}")
+            logger.info(f"Iniciando camera {camera_id}")
             try:
                 # Carrega e armazena a configuração de parada planejada da câmera
                 await self._carregar_setup_parada_planejada(camera_id)
@@ -70,33 +74,28 @@ class ServicoOEE:
 
                 self._locks[camera_id] = asyncio.Lock()
             except Exception as e:
-                print(f"[camera_id:{camera_id}] Erro ao iniciar cache de dados: {e}")
+                logger.exception(f"[camera_id:{camera_id}] Erro ao iniciar cache de dados: {e}")
         
         await self.running()
 
     async def running(self):
         try:
-            #logger.info("Iniciando variáveis chached...")
-            print("######### RUN Serviço OEE... #########", flush=True)
+            logger.info("######### RUN Serviço OEE... #########")
             self._running = True
 
             while self._running:
-                #logger.info("Serviço OEE está rodando...")
-                print(f"Serviço OEE está rodando...intervalo {self._interval}", flush=True)
+                logger.info(f"Serviço OEE está rodando...intervalo {self._interval}")
                 self.agora = datetime.now()
 
                 # Para cada câmera
                 for camera_id in list(self._cache_setupoee.keys()):
                     # lock garante que a função não seja chamada múltiplas vezes simultaneamente.
                     async with self._locks[camera_id]:
-                        print(f"running camera {camera_id}")
-
                         # read last timestamp from dataReceived
                         self.last_data_received = await get_last_timestamp_from_dataReceived_by_camera_id(db=self.db_external, CAMERA_NAME_ID=camera_id)
                         #intervalo_ate_ultimo_data_received = agora - last_data_received
-                        #print("last data_received timestamp", last_data_received)
                         if self.last_data_received is None:
-                            print(f"[camera_id:{camera_id}] Nenhum data_received encontrado.")
+                            logger.warning(f"[camera_id:{camera_id}] Nenhum data_received encontrado.")
                             continue  # ou use um valor padrão como `agora`, ou pule esse ciclo
                         else:
                             intervalo_ate_ultimo_data_received = self.agora - self.last_data_received
@@ -131,14 +130,13 @@ class ServicoOEE:
                 # Espera um intervalo até a próxima análise        
                 await asyncio.sleep(self._interval)
         except asyncio.CancelledError:
-            print("⚠️ Serviço OEE cancelado com Ctrl+C")
+            logger.exception("⚠️ Serviço OEE cancelado com Ctrl+C")
             raise  # Muito importante: repassar o cancelamento para o loop principal        
         except Exception as e:
-            print(f"Erro ao rodar serviço OEE: {e}")
+            logger.exception(f"Erro ao rodar serviço OEE: {e}")
 
     async def parar(self):
-        #logger.info("Parando serviço de OEE...")
-        print("Parando serviço de OEE...")
+        logger.info("Parando serviço de OEE...")
         self._running = False
 
 
@@ -147,7 +145,7 @@ class ServicoOEE:
         status = await obter_status_do_setup(self.db_session)
         while not status["oee_ready"]:
             status = await obter_status_do_setup(self.db_session)
-            print(f"Setup incompleto. Serviço OEE aguardando configuração da(s) câmera(s) {status['cameras_faltando_setup']}.")          
+            logger.warning(f"Setup incompleto. Serviço OEE aguardando configuração da(s) câmera(s) {status['cameras_faltando_setup']}.")          
             # Espera um intervalo até a próxima análise        
             await asyncio.sleep(self._interval)
 
@@ -159,10 +157,10 @@ class ServicoOEE:
             end = datetime.now()  # Se 'end' não for fornecido, usa a data/hora atual
 
         
-        print(f"processando digest data camera: {camera_id} start {start} end {end}")
+        logger.info(f"[camera_id:{camera_id}] Processando digest start {start} end {end}")
         if start is not None:
             if start >= end:
-                print(f"Erro: start não pode ser maior ou igual a end. start: {start}, end: {end}")
+                logger.warning(f"Erro: start não pode ser maior ou igual a end. start: {start}, end: {end}")
                 return
             resultados = await fetch_digest_data_from_datareceived(
                 db=self.db_external, 
@@ -197,8 +195,7 @@ class ServicoOEE:
         
             # Atualiza cache
             self._cache_digest[camera_id] = stop_digest
-            #self._cache_digest[camera_id] = last_timestamp
-            print("###self._cache_digest[camera_id]", self._cache_digest[camera_id])
+            logger.debug(f"[camera_id:{camera_id}] self._cache_digest[camera_id] {self._cache_digest[camera_id]}")
 
     async def process_paradaNOVO(self, camera_id: int):
         ultima_analise_de_parada = self._cache_parada[camera_id]
@@ -209,9 +206,9 @@ class ServicoOEE:
         if ultima_analise_de_parada is None:
             ultima_analise_de_parada = await get_first_timestamp_from_dataReceived_by_camera_id(self.db_external, camera_id)
             if ultima_analise_de_parada is None:
-                print(f"[camera_id:{camera_id}] Nenhuma data inicial encontrada para análise de parada.")
+                logger.warning(f"[camera_id:{camera_id}] Nenhuma data inicial encontrada para análise de parada.")
                 return
-            print(f"[camera_id:{camera_id}] Primeira análise de parada: {ultima_analise_de_parada}")
+            logger.info(f"[camera_id:{camera_id}] Primeira análise de parada: {ultima_analise_de_parada}")
 
         agora = self.agora
         data_analisar = ultima_analise_de_parada.date()
@@ -226,15 +223,15 @@ class ServicoOEE:
                 turno_fim = datetime.combine(data_analisar, str_para_time(turno['endTime']))
 
                 if turno_fim <= ultima_analise_de_parada:
-                    print(f"   Turno já analisado: {turno['name']}, Início: {turno_inicio}, Fim: {turno_fim}")
+                    logger.debug(f"[camera_id:{camera_id}] Turno já analisado: {turno['name']}, Início: {turno_inicio}, Fim: {turno_fim}")
                     continue  # já analisado
 
                 if turno_inicio > agora:
-                    print(f"   Turno ainda não começou: {turno['name']}, Início: {turno_inicio}, Fim: {turno_fim}")
+                    logger.debug(f"[camera_id:{camera_id}] Turno ainda não começou: {turno['name']}, Início: {turno_inicio}, Fim: {turno_fim}")
                     continue  # turno ainda não começou
 
-                print(f"[camera_id:{camera_id}] ➤ Possível turno completo desde última parada:")
-                print(f"   Turno: {turno['name']}, Início: {turno_inicio}, Fim: {turno_fim}")
+                logger.debug(f"[camera_id:{camera_id}] ➤ Possível turno completo desde última parada:")
+                logger.debug(f"[camera_id:{camera_id}] Início: {turno_inicio}, Fim: {turno_fim}")
                 
                 if ultima_analise_de_parada < turno_inicio:
                     inicio_de_pesquisa = turno_inicio
@@ -246,10 +243,10 @@ class ServicoOEE:
                 elif self.last_data_received > turno_inicio:
                     fim_pesquisa = self.last_data_received
                 else:
-                    print(f"{self.last_data_received} < {turno_inicio} -> continue")
+                    logger.debug(f"[camera_id:{camera_id}] {self.last_data_received} < {turno_inicio} -> continue")
                     continue
 
-                print(f"inicio_de_pesquisa {inicio_de_pesquisa}, fim_pesquisa {fim_pesquisa}")
+                logger.debug(f"[camera_id:{camera_id}] inicio_de_pesquisa {inicio_de_pesquisa}, fim_pesquisa {fim_pesquisa}")
                 paradas = await fetch_paradas_between(
                     self.db_external, 
                     inicio_de_pesquisa, 
@@ -263,7 +260,7 @@ class ServicoOEE:
                     camera_name_id = parada["camera_name_id"]
                     intervalo = parada["intervalo"]
 
-                    print(f"Parada {startTime} {stopTime}")
+                    logger.debug(f"[camera_id:{camera_id}] Parada {startTime} {stopTime}")
 
                     await self._verificar_parada_planejada(
                         real_inicio=startTime,
@@ -273,7 +270,7 @@ class ServicoOEE:
 
                     # Atualiza o cache com a última parte do intervalo
                     self._cache_parada[camera_name_id] = stopTime
-                    print('****** ultima_analise_de_parada atualizado', self._cache_parada[camera_name_id])
+                    logger.debug(f'[camera_id:{camera_id}]****** ultima_analise_de_parada atualizado {self._cache_parada[camera_name_id]}')
 
 
             data_analisar += timedelta(days=1)
@@ -281,8 +278,7 @@ class ServicoOEE:
     async def process_autooee(self, camera_id: int):
         turnos_pendentes = self.verificar_turnos_pendentes(camera_id)
         for turno in turnos_pendentes:
-            print(f"Turno pendente: {turno}")
-            #print(turno['start'], turno['end'], camera_id, self._cache_setupoee[camera_id].line_speed)
+            logger.debug(f"[camera_id:{camera_id}] Turno pendente: {turno}")
             
             oee_data = await oee_by_period(
                                 inicio=turno['start'], 
@@ -335,8 +331,8 @@ class ServicoOEE:
         shifts = self._cache_setupoee[camera_id].shifts
         agora = datetime.now()
 
-        print('ttttshifts', shifts)
-        print('ultimo_auto_oee', ultimo_auto_oee)
+        logger.debug(f"[camera_id:{camera_id}] Shifts {shifts}")
+        logger.debug(f"[camera_id:{camera_id}] ultimo_auto_oee {ultimo_auto_oee}")
 
         calculando_data = ultimo_auto_oee.date()
         while calculando_data <= agora.date():
@@ -359,11 +355,11 @@ class ServicoOEE:
                 # ✅ VERIFICA SE O LAST_DIGEST É MAIOR QUE O TURNO
                 #if self._cache_digest[camera_id] is None or not (inicio_turno <= self._cache_digest[camera_id] <= fim_turno):
                 if self._cache_digest[camera_id] is None or (self._cache_digest[camera_id] <= fim_turno):
-                    print(f"[camera_id:{camera_id}] Ignorando turno {shift['name']} de {inicio_turno} a {fim_turno} pois last_digest ({self._cache_digest[camera_id]}) não está dentro.")
+                    logger.debug(f"[camera_id:{camera_id}] Ignorando turno {shift['name']} de {inicio_turno} a {fim_turno} pois last_digest ({self._cache_digest[camera_id]}) não está dentro.")
                     continue
                 else:
-                    print(f"Auto OEE de turno {shift['name']} de {inicio_turno} a {fim_turno}")
-                    print(f"last digest {self._cache_digest[camera_id]}")
+                    logger.debug(f"[camera_id:{camera_id}] Auto OEE de turno {shift['name']} de {inicio_turno} a {fim_turno}")
+                    logger.debug(f"[camera_id:{camera_id}] last digest {self._cache_digest[camera_id]}")
 
                 if fim_turno <= agora:
                     # turno já passou e ainda não foi registrado
@@ -384,9 +380,9 @@ class ServicoOEE:
         cameras = self._listar_cameras()
      
         for camera_id in cameras:
-            print("camera", camera_id)
             setup = await crud.get_oee_setup_by_camera_name_id(db=self.db_session, camera_name_id=camera_id)
             self._cache_setupoee[camera_id] = setup
+            logger.debug(f"[camera_id:{camera_id}] cacheando setup")
         
     def _listar_cameras(self) -> List:
             # Retorne a lista de ID's de câmeras do banco
@@ -416,22 +412,19 @@ class ServicoOEE:
             self._cache_digest[camera_id] = last_digest.stop_digest
         else:
             self._cache_digest[camera_id] = None
-            #logger.warning(f"[{camera_id}] Nenhum dado válido encontrado para stop_digest.")
-            print(f"[{camera_id}] Nenhum dado válido encontrado para stop_digest.")
+            logger.warning(f"[camera_id:{camera_id}] Nenhum dado válido encontrado para stop_digest.")
 
         if last_parada:
             self._cache_parada[camera_id] = last_parada.stop
         else:
             self._cache_parada[camera_id] = None
-            #logger.warning(f"[{camera_id}] Nenhum dado válido encontrado para parada.stop.")
-            print(f"[{camera_id}] Nenhum dado válido encontrado para parada.stop.")
+            logger.warning(f"[camera_id:{camera_id}] Nenhum dado válido encontrado para parada.stop.")
 
         if last_autooee:
             self._cache_autooee[camera_id] = last_autooee.end
         else:
             self._cache_autooee[camera_id] = None
-            #logger.warning(f"[{camera_id}] Nenhum dado válido encontrado para auto_oee.end.")
-            print(f"[{camera_id}] Nenhum dado válido encontrado para auto_oee.end.")
+            logger.warning(f"[camera_id:{camera_id}] Nenhum dado válido encontrado para auto_oee.end.")
 
     def _carregar_tempos_configurados(self, camera_id):
         """
@@ -449,12 +442,12 @@ class ServicoOEE:
             # definir data para a parada planejada, para evitar erros de dias diferentes
             planejado_inicio = datetime.combine(data_inicio, setup.start_time) 
             planejado_fim = datetime.combine(data_inicio, setup.stop_time) 
-            print('planejado_fim', planejado_fim)
+            logger.debug(f"[camera_id:{camera_id}] planejado_fim {planejado_fim}")
 
             # Calcula o período dentro do planejado
             dentro_inicio = max(planejado_inicio, real_inicio)
             dentro_fim = min(planejado_fim, real_fim)
-            print('dentro_fim - dentro_inicio', dentro_fim, dentro_inicio)
+            logger.debug(f"[camera_id:{camera_id}] dentro_fim - dentro_inicio {dentro_fim}, {dentro_inicio}")
             # periodo real dentro da parada planejada
             if dentro_fim - dentro_inicio > timedelta(0):
                 # parada antes do planejado
@@ -466,7 +459,7 @@ class ServicoOEE:
                                     stop=planejado_inicio,
                                     camera_name_id=camera_id
                                 )
-                    print('cria parada antes do periodo planejado', real_inicio, planejado_inicio) 
+                    logger.debug(f"[camera_id:{camera_id}] cria parada antes do periodo planejado {real_inicio}, {planejado_inicio}") 
                 
                 # cria parada e define como planejada
                 new_parada = await crud.create_parada(
@@ -482,7 +475,7 @@ class ServicoOEE:
                                         paradas_id=new_parada.id,
                                         observacoes=""
                                     )
-                print('cria parada e define como planejada', dentro_inicio, dentro_inicio)
+                logger.debug(f"[camera_id:{camera_id}] cria parada e define como planejada {dentro_inicio}, {dentro_inicio}")
 
                 # parada depois do planejado
                 if real_fim > planejado_fim:
@@ -493,7 +486,7 @@ class ServicoOEE:
                                     stop=real_fim,
                                     camera_name_id=camera_id
                                 )
-                    print('parada depois do planejado', planejado_fim, real_fim)
+                    logger.debug(f"[camera_id:{camera_id}] parada depois do planejado {planejado_fim}, {real_fim}")
             
                 # sair do loop
                 break
@@ -505,6 +498,6 @@ class ServicoOEE:
                             stop=real_fim,
                             camera_name_id=camera_id
                         )
-            print("Nova parada fora do setup criada", real_inicio, real_fim)
+            logger.debug(f"[camera_id:{camera_id}] Nova parada fora do setup criada {real_inicio}, {real_fim}")
 
         

@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +10,9 @@ from database.models import (
     PlannedDowntime, UnplannedDowntime, AutoOEE
 )
 
+# Logger específico
+logger = logging.getLogger(__name__)
+
 # 📌 Função genérica para deletar um registro por ID
 async def delete_by_id(db: AsyncSession, model, record_id: int) -> Dict[str, Any]:
     try:
@@ -18,7 +22,7 @@ async def delete_by_id(db: AsyncSession, model, record_id: int) -> Dict[str, Any
         #return True
         return {"status": "success", "message": f"{model.__tablename__} with ID {record_id} deleted."}
     except SQLAlchemyError as e:
-        print(f"Erro ao deletar {model.__tablename__} com id {record_id}: {e}")
+        logger.exception(f"Erro ao deletar {model.__tablename__} com id {record_id}: {e}")
         await db.rollback()
         #return False
         return {"status": "error", "message": str(e)}

@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
@@ -12,6 +13,9 @@ from database.crud import create_parada
 
 from services.servico_data_received import fetch_digest_data_from_datareceived, fetch_all_digest_data_from_datareceived, get_last_timestamp_from_dataReceived_by_camera_id
 from database.db.conexao_db_externo import get_external_db
+
+# Logger específico
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -50,22 +54,18 @@ async def teste_fetch_digest(
                 START_ANALISE=inicio, # datetime "'2025-06-09 10:00:43'",
                 STOP_ANALISE=fim
                 )
-    print('resultados', resultados)
     return {'resultados': resultados}
 
 # 📌 POST
 @router.post("/create_digest/")
 async def create_digest_endpoint(db: AsyncSession = Depends(get_db)):
     # SetupOEE
-    #setup_oee = crud.get_oee_setup_by_camera_name_id(db=db, camera_name_id=camera_name_id)
-    #print("setup_oee", setup_oee)
     camera_name_id = 1 # setup_oee["camera_name_id"]
     digest_time = 60 # setup_oee["digest_time"]
     resultados = servico_data_received.fetch_digest_data_from_datareceived(camera_name_id, digest_time)
 
     for row in resultados:
         # Extrair valores de cada linha de resultado
-        print('row', row)
         lote_id = row[0][0]  # row["LoteId"]  # Ajuste conforme o formato do seu resultado
         camera_name_id = row[0][1]  # row["CameraId"]  # Ajuste conforme o formato do seu resultado
         ok = row[0][2]  # row["total_ok"]

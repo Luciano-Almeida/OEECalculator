@@ -1,3 +1,4 @@
+import logging
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
@@ -9,6 +10,9 @@ from database.models import (
     PlannedDowntime, UnplannedDowntime, AutoOEE
 )
 import schemas as schemas
+
+# Logger específico
+logger = logging.getLogger(__name__)
 
 # 📌 Função genérica para atualizar qualquer modelo
 async def update_record(
@@ -29,7 +33,7 @@ async def update_record(
         return {"status": "success", "message": f"{model.__tablename__} with ID {record_id} updated."}
     except SQLAlchemyError as e:
         await db.rollback()
-        print(f"Erro ao atualizar {model.__tablename__}: {e}")
+        logger.exception(f"Erro ao atualizar {model.__tablename__}: {e}")
         return {"status": "error", "message": str(e)}
 
 

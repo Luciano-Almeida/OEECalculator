@@ -1,4 +1,5 @@
 from datetime import datetime, time
+import logging
 from typing import Dict, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
@@ -7,6 +8,9 @@ from database.models import (OEESetup, DigestData,
     PlannedDowntimeSetup, UnplannedDowntimeSetup, Paradas,
     PlannedDowntime, UnplannedDowntime, AutoOEE
 )
+
+# Logger específico
+logger = logging.getLogger(__name__)
 
 # 📌 Função genérica para criar um registro (assíncrona)
 async def create_record(db: AsyncSession, record):
@@ -17,7 +21,7 @@ async def create_record(db: AsyncSession, record):
         return record
     except SQLAlchemyError as e:
         await db.rollback()  # Rollback assíncrono
-        print(f"Erro ao criar o registro: {e}")
+        logger.exception(f"Erro ao criar o registro: {e}")
         raise
 
 # 📌 Funções para criar registros em cada tabela

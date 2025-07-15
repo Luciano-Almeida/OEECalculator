@@ -3,25 +3,28 @@ from sqlalchemy.exc import OperationalError
 
 from database.db import engine  # Certifique-se de usar o engine assíncrono
 from database.db import Base  # Importa o Base para criar as tabelas
+import logging
 
+# Logger específico
+logger = logging.getLogger("init_db")
 
 async def wait_for_db():
     """Tenta conectar-se ao banco de dados e espera até que esteja pronto."""
     while True:
-        print("Tentando conectar ao banco de dados...")
+        logger.info("Tentando conectar ao banco de dados...")
         try:
             # Tenta se conectar ao banco
             async with engine.connect() as conn:
                 await conn.close()  # Fecha a conexão explicitamente
-                print("✅ Banco de Dados Conectado!")
+                logger.info("✅ Banco de Dados Conectado!")
                 break
         except OperationalError:
-            print("⏳ Banco de dados indisponível. Tentando novamente em 2 segundos...")
+            logger.warning("⏳ Banco de dados indisponível. Tentando novamente em 2 segundos...")
             await asyncio.sleep(2)
 
 
 async def init_db():
-    print("🚀 Iniciando o banco de dados...")
+    logger.info("🚀 Iniciando o banco de dados...")
     await wait_for_db()  # Garante que o banco está pronto antes de continuar
 
     # Cria todas as tabelas (se não existirem)

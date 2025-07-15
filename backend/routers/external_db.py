@@ -1,4 +1,5 @@
 # app.py
+import logging
 from sqlalchemy import text
 from pydantic import BaseModel
 from typing import Optional
@@ -11,6 +12,8 @@ from services.servico_data_received import fetch_all_digest_data_from_datareceiv
 from database.db.conexao_db_externo import get_external_db
 import database.crud as crud
 
+# Logger específico
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -25,17 +28,17 @@ async def dados_external_db(db: AsyncSession = Depends(get_external_db)):
         #tabelas = result.fetchall()        
         #return {"tabelas": [dict(row) for row in tabelas]}  # Convertendo para dicionário
         tabelas = result.mappings().all()
-        print("✅ Tabelas encontradas:", tabelas)
+        logger.debug("✅ Tabelas encontradas:", tabelas)
         #return tabelas
         return {"tabelas": jsonable_encoder(tabelas)}
     except Exception as e:
-        print("❌ Erro ao buscar dados:", e)
+        logger.exception("❌ Erro ao buscar dados:", e)
         return {"erro": str(e)}
 
 @router.get("/tabelas-external-db")
 async def listar_tabelas_external_db(db: AsyncSession = Depends(get_external_db)):
     try:
-        print("🧪 Executando query...")
+        logger.debug("🧪 Executando query...")
         query = text("""
             SELECT table_name
             FROM information_schema.tables
@@ -44,19 +47,16 @@ async def listar_tabelas_external_db(db: AsyncSession = Depends(get_external_db)
         """)
         result = await db.execute(query)
         tabelas = result.scalars().all()
-        #tabelas = result.fetchall()
-        #print("✅ Tabelas encontradas:", tabelas)
-        #return {"tabelas": tabelas}
         return {"db": "external_db", "tabelas": tabelas}
     except Exception as e:
-        print("❌ Erro ao executar query:", str(e))
+        logger.exception("❌ Erro ao executar query:", str(e))
         raise e
     
 
 @router.get("/teste")
 async def teste(db: AsyncSession = Depends(get_external_db)):
     try:
-        print("🧪 Executando query...")
+        logger.debug("🧪 Executando query...")
         
         resultados = await fetch_all_digest_data_from_datareceived(
                 db=db,
@@ -64,9 +64,8 @@ async def teste(db: AsyncSession = Depends(get_external_db)):
                 DIGEST_TIME=60
                 )
         
-        print("✅ Tabelas encontradas:", resultados)
-        #return {"tabelas": tabelas}
+        logger.debug("✅ Tabelas encontradas:", resultados)
         return {"db": "external_db", "tabelas": 'resultados'}
     except Exception as e:
-        print("❌ Erro ao executar query:", str(e))
+        logger.exception("❌ Erro ao executar query:", str(e))
         raise e

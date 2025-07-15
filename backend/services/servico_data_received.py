@@ -2,9 +2,11 @@ from datetime import datetime, timedelta
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Depends
+import logging
 from database.db.conexao_db_externo import get_external_db
 
+# Logger específico
+logger = logging.getLogger("serviço data_received")
 
 async def fetch_paradas(db: AsyncSession, PARADA_TIME_STOP = 60):
     """
@@ -55,7 +57,7 @@ async def fetch_paradas(db: AsyncSession, PARADA_TIME_STOP = 60):
         return paradas
 
     except Exception as e:
-        print("❌ Erro ao executar query de paradas:", str(e))
+        logger.exception(f"❌ Erro ao executar query de paradas: {e}")
         raise e
 
 async def fetch_paradas_after_init_date(db: AsyncSession, INIT='2025-06-09 15:00:00', PARADA_TIME_STOP=60):
@@ -119,7 +121,7 @@ async def fetch_paradas_after_init_date(db: AsyncSession, INIT='2025-06-09 15:00
         return paradas
 
     except Exception as e:
-        print("❌ Erro ao executar query de paradas:", str(e))
+        logger.exception(f"❌ Erro ao executar query de paradas: {e}")
         raise e
 
 async def fetch_paradas_between(
@@ -227,7 +229,7 @@ async def fetch_paradas_between(
         return paradas_final
 
     except Exception as e:
-        print("❌ Erro ao executar query de paradas:", str(e))
+        logger.exception(f"❌ Erro ao executar query de paradas: {e}")
         raise e
 
 
@@ -242,7 +244,7 @@ async def fetch_digest_data_from_datareceived(
                                             START_ANALISE="'2025-03-13 08:00:00'",
                                             STOP_ANALISE = datetime.now()#"'2025-04-1 13:00:00'",                                            
                                             ):
-    print(f'Fetch Digest data from data_received from camera {CAMERA_NAME_ID} and Period {START_ANALISE} to {STOP_ANALISE}')
+    logger.info(f'Fetch Digest data from data_received from camera {CAMERA_NAME_ID} and Period {START_ANALISE} to {STOP_ANALISE}')
 
     # Convertendo as strings de data para objetos datetime
     #start_time = datetime.datetime.strptime(START_ANALISE.strip("'"), "%Y-%m-%d %H:%M:%S")
@@ -295,7 +297,7 @@ async def fetch_digest_data_from_datareceived(
             )
             resultado = resultado.fetchall()
         except Exception as e:
-            print("❌ Erro ao executar query no fetch digest:", str(e))
+            logger.exception("❌ Erro ao executar query no fetch digest: {e}")
             raise e
         
         # Armazenando o resultado na lista
@@ -316,7 +318,7 @@ async def fetch_digest_data_from_datareceived(
                 else:
                     current_time += digest_delta
             else:
-                print("⚠️ Resultado inesperado: menos de 5 colunas retornadas:", resultado[0])
+                logger.warning(f"⚠️ Resultado inesperado: menos de 5 colunas retornadas: {resultado[0]}")
                 current_time += digest_delta
         else:
             current_time += digest_delta
@@ -333,7 +335,7 @@ async def fetch_all_digest_data_from_datareceived(
     DIGEST_TIME
     ):
     # Consulta para pegar o intervalo total de tempo no banco externo
-    print(f'Fetch ALL Digest data from data_received from camera {CAMERA_NAME_ID} and Period {DIGEST_TIME}')
+    logger.info(f'Fetch ALL Digest data from data_received from camera {CAMERA_NAME_ID} and Period {DIGEST_TIME}')
     
     query_limits = text("""
     SELECT MIN("timestamp") AS min_time, MAX("timestamp") AS max_time FROM "data_received";
@@ -341,11 +343,10 @@ async def fetch_all_digest_data_from_datareceived(
 
     resultado = await db.execute(query_limits)
     limits_result = resultado.fetchone()
-    print("limits_result", limits_result)
     start_time, stop_time = limits_result
     
     if not start_time or not stop_time:
-        print("Não foi possível obter o intervalo de tempo do banco externo.")
+        logger.warning("Não foi possível obter o intervalo de tempo do banco externo.")
         return []
     
     # Convertendo o tempo de digest para um intervalo de tempo (timedelta)
@@ -378,23 +379,7 @@ async def fetch_all_digest_data_from_datareceived(
             }
         )
         resultado = resultado.fetchall()
-        #print("query", formatted_start_time, formatted_end_time)
-        #print("*****resultado", resultado)
-        #print("camera id", CAMERA_NAME_ID)
-
-        '''if resultado:
-            resultado.append(formatted_start_time)
-            resultado.append(formatted_end_time)
-            resultados.append(resultado)
-            #print('com resultado', resultado)
-            batch -= 1
-            if batch <= 0:
-                return resultados
-        else:
-            pass
-            print("sem resultado", resultado)
         
-        current_time += digest_delta'''
         if resultado:
             if len(resultado[0]) >= 5:
                 last_timestamp = resultado[0][4]
@@ -412,7 +397,7 @@ async def fetch_all_digest_data_from_datareceived(
                 else:
                     current_time += digest_delta
             else:
-                print("⚠️ Resultado inesperado: menos de 5 colunas retornadas:", resultado[0])
+                logger.warning(f"⚠️ Resultado inesperado: menos de 5 colunas retornadas: {resultado[0]}")
                 current_time += digest_delta
         else:
             current_time += digest_delta
@@ -446,15 +431,15 @@ async def get_last_timestamp_from_dataReceived_by_camera_id(
             }
         )
         resultado = resultado.fetchall()
-        print("último timestamp da câmera fornecida", resultado)
+
         # Verificando e retornando o resultado
         if resultado:
             return resultado[0][0]
         else:
-            print(f"Nenhum timestamp encontrado para a câmera {CAMERA_NAME_ID}")
+            logger.warning(f"Nenhum timestamp encontrado para a câmera {CAMERA_NAME_ID}")
             return None
     except Exception as e:
-        print(f"Erro ao buscar último data_received: {e}")
+        logger.exception(f"Erro ao buscar último data_received: {e}")
 
 
 async def get_first_timestamp_from_dataReceived_by_camera_id(  
@@ -481,14 +466,14 @@ async def get_first_timestamp_from_dataReceived_by_camera_id(
             }
         )
         resultado = resultado.fetchall()
-        print("primeiro timestamp da câmera fornecida", resultado)
+        logger.info(f"primeiro timestamp da câmera {CAMERA_NAME_ID} fornecida {resultado}")
         # Verificando e retornando o resultado
         if resultado:
             return resultado[0][0]
         else:
-            print(f"Nenhum timestamp encontrado para a câmera {CAMERA_NAME_ID}")
+            logger.warning(f"Nenhum timestamp encontrado para a câmera {CAMERA_NAME_ID}")
             return None
     except Exception as e:
-        print(f"Erro ao buscar último data_received: {e}")
+        logger.exception(f"Erro ao buscar último data_received: {e}")
 
 

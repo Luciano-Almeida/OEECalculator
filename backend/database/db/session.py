@@ -1,9 +1,13 @@
+import logging
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 import os
 
+# Logger específico
+logger = logging.getLogger(__name__)
+
 DATABASE_URL = DATABASE_URL = os.getenv("DATABASE_URL", default = None)
-print("DATABASE_URL", DATABASE_URL)
+logger.info(f"DATABASE_URL {DATABASE_URL}")
 
 # Configuração do engine assíncrono
 engine = create_async_engine(

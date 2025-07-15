@@ -1,11 +1,14 @@
 # utils/status
-
+import logging
 from typing import Dict, List, Optional, Union
 from pydantic import BaseModel
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import database.crud as crud  # Importa as funções de criação do CRUD
+
+# Logger específico
+logger = logging.getLogger("utils/status")
 
 class DigestStatus(BaseModel):
     camera_id: int
@@ -33,7 +36,7 @@ async def obter_status_do_setup(db: AsyncSession) -> Dict[str, Union[bool, List[
         }
 
     except SQLAlchemyError as e:
-        print(f"❌ Erro ao verificar status setup: {e}")
+        logger.exception(f"❌ Erro ao verificar status setup: {e}")
         return {
             "error": str(e),
             "oee_ready": False,

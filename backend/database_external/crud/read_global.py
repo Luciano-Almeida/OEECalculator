@@ -1,7 +1,11 @@
+import logging
 from sqlalchemy import text
 from fastapi import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
+
+# Logger específico
+logger = logging.getLogger(__name__)
 
 # 📌 Função genérica para executar consultas (assíncrona)
 async def fetch_all(db: AsyncSession, stmt):
@@ -9,7 +13,7 @@ async def fetch_all(db: AsyncSession, stmt):
         result = await db.execute(stmt)  # Execução assíncrona
         return result.scalars().all()  # Obtém todos os resultados
     except SQLAlchemyError as e:
-        print(f"Erro ao buscar registros: {e}")
+        logger.exception(f"Erro ao buscar registros: {e}")
         raise
 
 async def fetch_one(db: AsyncSession, stmt):
@@ -17,7 +21,7 @@ async def fetch_one(db: AsyncSession, stmt):
         result = await db.execute(stmt)  # Execução assíncrona
         return result.scalar_one_or_none()  # Obtém um único registro ou None
     except SQLAlchemyError as e:
-        print(f"Erro ao buscar registro: {e}")
+        logger.exception(f"Erro ao buscar registro: {e}")
         raise
 
 async def fetch_all_rows(db: AsyncSession, stmt):
@@ -28,7 +32,7 @@ async def fetch_all_rows(db: AsyncSession, stmt):
         result = await db.execute(stmt)
         return result.all()  # Retorna todas as linhas como tuplas
     except SQLAlchemyError as e:
-        print(f"Erro ao buscar registros: {e}")
+        logger.exception(f"Erro ao buscar registros: {e}")
         raise
 
 
@@ -40,7 +44,6 @@ async def get_last_active_user_id(db: AsyncSession):
 
     if not result or result[0][0] is None:
         #raise HTTPException(status_code=404, detail="Nenhum usuário ativo encontrado")
-        print("RESULT", result)
         return None
     
     # Extrai apenas os IDs de cada tupla e cria uma lista

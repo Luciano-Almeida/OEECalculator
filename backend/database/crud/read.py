@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import json
+import logging
 from sqlalchemy import and_, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
@@ -13,13 +14,16 @@ from database.models import (
     PlannedDowntime, UnplannedDowntime, AutoOEE
 )
 
+# Logger específico
+logger = logging.getLogger(__name__)
+
 # 📌 Função genérica para executar consultas (assíncrona)
 async def fetch_all(db: AsyncSession, stmt):
     try:
         result = await db.execute(stmt)  # Execução assíncrona
         return result.scalars().all()  # Obtém todos os resultados
     except SQLAlchemyError as e:
-        print(f"Erro ao buscar registros: {e}")
+        logger.exception(f"Erro ao buscar registros: {e}")
         raise
 
 async def fetch_one(db: AsyncSession, stmt):
@@ -27,7 +31,7 @@ async def fetch_one(db: AsyncSession, stmt):
         result = await db.execute(stmt)  # Execução assíncrona
         return result.scalar_one_or_none()  # Obtém um único registro ou None
     except SQLAlchemyError as e:
-        print(f"Erro ao buscar registro: {e}")
+        logger.exception(f"Erro ao buscar registro: {e}")
         raise
 
 async def fetch_all_rows(db: AsyncSession, stmt):
@@ -38,7 +42,7 @@ async def fetch_all_rows(db: AsyncSession, stmt):
         result = await db.execute(stmt)
         return result.all()  # Retorna todas as linhas como tuplas
     except SQLAlchemyError as e:
-        print(f"Erro ao buscar registros: {e}")
+        logger.exception(f"Erro ao buscar registros: {e}")
         raise
 
 

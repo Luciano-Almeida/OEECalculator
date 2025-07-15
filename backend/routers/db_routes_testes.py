@@ -1,5 +1,6 @@
 from datetime import date, datetime, time, timedelta
 import json
+import logging
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, validator
 from sqlalchemy import select, text
@@ -15,6 +16,9 @@ from database.crud import create_parada
 # Importando as classes do SQLAlchemy
 from database.models import OEESetup, PlannedDowntime, UnplannedDowntime, Paradas, AutoOEE, PlannedDowntimeSetup
 import schemas as schemas
+
+# Logger específico
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -66,8 +70,6 @@ async def delete_all_digest_data_by_id(db: AsyncSession = Depends(get_db)):
 
     # Deleta um por um usando a função equivalente a delete_auto_oee_by_id
     for digest_data in digest_data_list:
-        #print("digest_data", digest_data)
-        #digest_data = json.loads(digest_data)
         await crud.delete_digest_data(db, digest_data.id)
 
     return {"message": f"{len(digest_data_list)} registros de DigestData foram deletados com sucesso."}
@@ -82,8 +84,6 @@ async def delete_all_parada_planejada_data_by_id(db: AsyncSession = Depends(get_
 
     # Deleta um por um usando a função equivalente a delete_auto_oee_by_id
     for plannedDowntime_data in plannedDowntime_data_list:
-        #print("digest_data", digest_data)
-        #digest_data = json.loads(digest_data)
         await crud.delete_planned_downtime(db, plannedDowntime_data.id)
 
     return {"message": f"{len(plannedDowntime_data_list)} registros de PlannedDowntime foram deletados com sucesso."}

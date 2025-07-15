@@ -9,10 +9,18 @@ from database.db import AsyncSessionLocal
 from database.db.conexao_db_externo import AsyncSessionLocalDB1
 from init_db import init_db
 
+import logging
+from logging.config import dictConfig
+from utils.logging_config import LOGGING_CONFIG
+
+# Aplica configuração de log
+dictConfig(LOGGING_CONFIG)
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("🌱 Iniciando o app...")
+    logger.info("🌱 Iniciando o app...")
 
     # Inicia o banco de dados
     await init_db()
@@ -30,20 +38,20 @@ async def lifespan(app: FastAPI):
     async def supervision_loop():
         while True:
             try:
-                print("🔄 Iniciando serviço OEE supervisionado...")
+                logger.info("🔄 Iniciando serviço OEE supervisionado...")
                 await servico_oee.iniciar()
             except Exception as e:
-                print(f"💥 Serviço OEE caiu com erro: {e}")
+                logger.exception(f"💥 Serviço OEE caiu com erro: {e}")
                 await asyncio.sleep(5)  # tempo de espera antes de tentar reiniciar
             else:
-                print("🟡 Serviço OEE parou normalmente.")
+                logger.info("🟡 Serviço OEE parou normalmente.")
                 break  # sai do loop se parou por vontade própria
 
     task = asyncio.create_task(supervision_loop())
 
     yield
 
-    print("🛑 Encerrando o app...")
+    logger.info("🛑 Encerrando o app...")
 
     # Para o serviço de forma segura
     await servico_oee.parar()

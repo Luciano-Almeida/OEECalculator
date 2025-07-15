@@ -1,13 +1,18 @@
 # services/auth_service.py
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+import logging
+
 import database_external.crud as crud_external
+
+# Logger específico
+logger = logging.getLogger("serviço de autenticação")
 
 async def get_authenticated_user_data(db: AsyncSession):
     try:
         user_id = await crud_external.get_last_active_user_id(db)
         if user_id is None:
-            print("***********Nenhum usuário ativo, retorna None")
+            logger.warning("Nenhum usuário ativo, retorna None")
             return None  # Nenhum usuário ativo, retorna None
         elif user_id == 0:
             return {

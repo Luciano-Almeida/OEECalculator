@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from fastapi import Depends
+import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict
 
@@ -7,6 +8,8 @@ from database.db import get_db
 import database.crud as crud
 from utils import timedelta_to_iso
 
+# Logger específico
+logger = logging.getLogger("serviço calculo OEE")
 
 async def oee_by_period(
                         inicio: datetime, 
@@ -73,7 +76,6 @@ async def oee_by_period(
 
     # G. Relação de disponibilidade (F / D)
     availability_ratio = operating_time.total_seconds() / tempo_disponivel_liquido.total_seconds() if tempo_disponivel_liquido.total_seconds() > 0 else 0
-    #print('availability_ratio', availability_ratio)
 
     # H. Número total de peças produzidas (boas e ruins)
     production = await crud.get_total_ok_nok_from_digest(db=db, inicio=inicio, fim=fim, camera_name_id=camera_name_id)
@@ -93,7 +95,6 @@ async def oee_by_period(
 
     # M. Relação de qualidade (Qualidade = (Peças boas - Defeituosas) / Peças boas) (H - L / H)
     quality_ratio = (total_produced_pieces - total_defective_pieces) / total_produced_pieces if total_produced_pieces > 0 else 0
-    #print('quality_ratio', quality_ratio)
 
     # OEE
     oee = availability_ratio * performance_ratio * quality_ratio

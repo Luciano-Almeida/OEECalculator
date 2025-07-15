@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import logging
 from zoneinfo import ZoneInfo
 from pydantic import BaseModel
 from typing import Optional
@@ -12,6 +13,8 @@ import database_external.crud as crud_external
 import schemas as schemas
 from services import get_authenticated_user_data
 
+# Logger específico
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -19,7 +22,7 @@ router = APIRouter()
 @router.get("/autentication")
 async def get_authenticated_user(db: AsyncSession = Depends(get_external_db)):
     user = await get_authenticated_user_data(db)
-    print(f"Usuário e Permissões: {user}")
+    logger.info(f"Usuário e Permissões: {user}")
     return user
 
 @router.post("/criar_auditoria")
