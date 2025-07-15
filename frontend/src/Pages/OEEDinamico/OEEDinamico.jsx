@@ -1,5 +1,6 @@
 // src/components/OEEDinamico.jsx
 import React, { useState, useEffect, useRef } from 'react';
+import { useCameras } from '../../context/CamerasContext';
 import axios from 'axios';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { format } from "date-fns";
@@ -18,8 +19,10 @@ const COLORS = ["#229752", '#1f8a4c', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'
 
 
 const OEEDinamico = () => {
-  const [cameraId, setCameraId] = useState(Number(import.meta.env.VITE_CAMERA_DEFAULT) || 1); 
-  const cameras = import.meta.env.VITE_CAMERAS ? import.meta.env.VITE_CAMERAS.split(',') : [];
+  const { cameras, cameraDefault } = useCameras(); 
+  const [cameraId, setCameraId] = useState(cameraDefault);
+  //const [cameraId, setCameraId] = useState(Number(import.meta.env.VITE_CAMERA_DEFAULT) || 1); 
+  //const cameras = import.meta.env.VITE_CAMERAS ? import.meta.env.VITE_CAMERAS.split(',') : [];
   const [responseData, setResponseData] = useState(null);
   const { registrarAuditoria } = useAuditoria();
   const { atualizarUsuario } = useAuth();
@@ -150,6 +153,8 @@ const OEEDinamico = () => {
     </div>
   );
   }  
+
+  console.log('camera default *', cameraDefault)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>

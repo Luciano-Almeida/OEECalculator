@@ -32,6 +32,7 @@ async def obter_status_do_setup(db: AsyncSession) -> Dict[str, Union[bool, List[
 
         return {
             "oee_ready": oee_ready,
+            "cameras_disponiveis": lista_de_cameras,
             "cameras_faltando_setup": cameras_faltando_setup
         }
 

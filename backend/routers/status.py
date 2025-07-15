@@ -29,3 +29,12 @@ async def get_setup_status_ok(
             }'''
     return await obter_status_do_setup(db)
 
+
+@router.get("/get_cameras_disponiveis/", response_model=List)
+async def get_cameras_disponiveis(
+    db: AsyncSession = Depends(get_db),
+):
+    status = await obter_status_do_setup(db)
+    cameras_disponiveis = status["cameras_disponiveis"]
+    
+    return cameras_disponiveis

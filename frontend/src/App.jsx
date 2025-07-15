@@ -6,6 +6,7 @@ import './App.css';
 import { AuthProvider, useAuth} from './context/AuthContext'
 import MainContent from './Components/MainContent';
 import StatusSetup from './Pages/Status/StatusSetup';
+import { CameraProvider } from './context/CamerasContext';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('OEEDinamico');
@@ -50,13 +51,15 @@ function App() {
 
   return (
     <AuthProvider>
-      <MainContent
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-        isOeeReady={isOeeReady}
-        reviewStatus={reviewStatus}
-        camerasFaltandoSetup={camerasFaltandoSetup}
-      />
+      <CameraProvider>
+        <MainContent
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          isOeeReady={isOeeReady}
+          reviewStatus={reviewStatus}
+          camerasFaltandoSetup={camerasFaltandoSetup}
+        />
+      </CameraProvider>
     </AuthProvider>
   );
 }
