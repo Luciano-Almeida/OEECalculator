@@ -477,3 +477,52 @@ async def get_first_timestamp_from_dataReceived_by_camera_id(
         logger.exception(f"Erro ao buscar último data_received: {e}")
 
 
+
+async def fetch_enderecos_camera(
+    db: AsyncSession,
+    nome_inicial: str = "Câmera"
+):
+    
+    """
+    Retorna todos os IDs e nomes da tabela "EnderecosComunicacao" cujo nome começa com o prefixo informado.
+
+    A consulta é feita de forma case-insensitive (ILIKE) e ordenada pelo ID.
+
+    Args:
+        db (AsyncSession): Sessão assíncrona do SQLAlchemy para acessar o banco de dados.
+        nome_inicial (str, optional): Prefixo para filtrar os nomes. 
+            Apenas registros cujo nome começa com esse valor serão retornados. 
+            Valor padrão é "Câmera".
+
+    Returns:
+        List[Dict[str, Any]]: Lista de dicionários contendo os campos:
+            - "id" (int): ID do endereço.
+            - "nome" (str): Nome completo do endereço.
+    Examples:
+        [
+            {"id": 2, "nome": "Câmera"},
+            {"id": 3, "nome": "Câmera 01"},
+            {"id": 4, "nome": "Câmera 02"}
+        ]
+
+    Raises:
+        Exception: Se ocorrer algum erro durante a execução da query.
+    """
+    try:
+        query = text("""
+        SELECT "ID", "nome"
+        FROM "EnderecosComunicacao"
+        WHERE "nome" ILIKE :nome_inicial
+        ORDER BY "ID"
+        """)
+        
+        params = {"nome_inicial": f"{nome_inicial}%"}
+        
+        result = await db.execute(query, params)
+        rows = result.fetchall()
+
+        return [{"id": row.ID, "nome": row.nome} for row in rows]
+
+    except Exception as e:
+        logger.exception(f"❌ Erro ao buscar endereços com nome iniciando por '{nome_inicial}': {e}")
+        raise e

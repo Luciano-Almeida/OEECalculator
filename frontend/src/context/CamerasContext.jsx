@@ -16,8 +16,8 @@ export const CameraProvider = ({ children }) => {
     const fetchCameras = async () => {
         try {
             const response = await axios.get('http://localhost:8000/get_cameras_disponiveis');
-            setCameras(response.data.cameras_disponiveis);
-            setCameraDefault(response.data.cameras_disponiveis[0] || 1); // Primeiro índice
+            setCameras(response.data);
+            setCameraDefault(response.data[0]?.id || 1); // Primeiro índice
         } catch (error) {
             console.error('Erro ao buscar as câmeras:', error);
         }

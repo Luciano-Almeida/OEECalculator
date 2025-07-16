@@ -17,9 +17,7 @@ class DigestStatus(BaseModel):
 
 
 
-async def obter_status_do_setup(db: AsyncSession) -> Dict[str, Union[bool, List[int], str]]:
-    lista_de_cameras = [1, 2]  # Alterar no futuro -> Ler do banco Nauta ou de variáveis de ambiente
-
+async def obter_status_do_setup(db: AsyncSession, lista_de_cameras = [1, 2]) -> Dict[str, Union[bool, List[int], str]]:
     cameras_faltando_setup = []
 
     try:
@@ -32,7 +30,6 @@ async def obter_status_do_setup(db: AsyncSession) -> Dict[str, Union[bool, List[
 
         return {
             "oee_ready": oee_ready,
-            "cameras_disponiveis": lista_de_cameras,
             "cameras_faltando_setup": cameras_faltando_setup
         }
 
@@ -41,7 +38,6 @@ async def obter_status_do_setup(db: AsyncSession) -> Dict[str, Union[bool, List[
         return {
             "error": str(e),
             "oee_ready": False,
-            "cameras_faltando_setup": []
         }
 
 def calcular_status_digest(servico_oee, camera_id: int, digest_time_config: int = 600) -> DigestStatus:

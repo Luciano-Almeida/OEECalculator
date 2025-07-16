@@ -20,7 +20,7 @@ const COLORS = ["#229752", '#1f8a4c', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'
 
 const OEEDinamico = () => {
   const { cameras, cameraDefault } = useCameras(); 
-  const [cameraId, setCameraId] = useState(cameraDefault);
+  const [cameraId, setCameraId] = useState(null);
   //const [cameraId, setCameraId] = useState(Number(import.meta.env.VITE_CAMERA_DEFAULT) || 1); 
   //const cameras = import.meta.env.VITE_CAMERAS ? import.meta.env.VITE_CAMERAS.split(',') : [];
   const [responseData, setResponseData] = useState(null);
@@ -90,6 +90,13 @@ const OEEDinamico = () => {
     }
   };
 
+  // Define o cameraId quando o contexto carrega
+  useEffect(() => {
+    if (cameraDefault){
+      setCameraId(cameraDefault);
+    }
+  }, [cameraDefault]);
+
   useEffect(() => {
     // Chama o fetchData imediatamente e a cada 60 segundos
     fetchData();  // Chama imediatamente na primeira renderização
@@ -154,7 +161,6 @@ const OEEDinamico = () => {
   );
   }  
 
-  console.log('camera default *', cameraDefault)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -201,9 +207,9 @@ const OEEDinamico = () => {
                   onChange={(e) => setCameraId(Number(e.target.value))}
                   style={{ padding: '5px', borderRadius: '5px' }}
                 >
-                  {cameras.map((camera, index) => (
-                    <option key={index} value={index + 1}>
-                      {camera}
+                  {cameras.map((camera) => (
+                    <option key={camera.id} value={camera.id}>
+                      {camera.nome}
                     </option>
                   ))}
                 </select>

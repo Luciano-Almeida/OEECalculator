@@ -132,7 +132,7 @@ async def get_oee(
     # se preferir o fim como a hora atual
     if fim > hora_atual:
         fim = hora_atual
-    logger.debug('pesquisa', inicio, fim)
+
     oee_data = await oee_by_period(inicio, fim, camera_name_id, oee_setup.line_speed, db)
 
     # 3. Histórico de produção

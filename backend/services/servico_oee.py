@@ -10,8 +10,8 @@ from database.db.conexao_db_externo import get_external_db
 import database.crud as crud
 from database.models import AutoOEE, OEESetup, DigestData, PlannedDowntimeSetup
 import schemas as schemas
-from services.servico_data_received import fetch_paradas_after_init_date, fetch_paradas, fetch_paradas_between, fetch_digest_data_from_datareceived, fetch_all_digest_data_from_datareceived, get_last_timestamp_from_dataReceived_by_camera_id, get_first_timestamp_from_dataReceived_by_camera_id
-from services import oee_by_period
+from services.servico_data_received import fetch_paradas_between, fetch_digest_data_from_datareceived, fetch_all_digest_data_from_datareceived, get_last_timestamp_from_dataReceived_by_camera_id, get_first_timestamp_from_dataReceived_by_camera_id
+import services
 from utils import DIAS_SEMANA, obter_status_do_setup
 
 # Logger específico
@@ -48,6 +48,7 @@ class ServicoOEE:
         self._locks: Dict[int, asyncio.Lock] = {}
 
         # variaveis gerais
+        self.cameras_disponiveis = []
         self.last_data_received = None
         self.agora = None  # centraliza a hora atual de cada running
 
@@ -142,12 +143,17 @@ class ServicoOEE:
 
     # Métodos Pirncipais
     async def verificar_setup_antes_de_executar(self):
+        # carregar lista de cameras disponiveis
+        await self._listar_cameras()
+
+        # verificar status até setups serem corretamente carregados
         status = await obter_status_do_setup(self.db_session)
         while not status["oee_ready"]:
-            status = await obter_status_do_setup(self.db_session)
+            status = await obter_status_do_setup(self.db_session, lista_de_cameras=self.cameras_disponiveis)
             logger.warning(f"Setup incompleto. Serviço OEE aguardando configuração da(s) câmera(s) {status['cameras_faltando_setup']}.")          
             # Espera um intervalo até a próxima análise        
             await asyncio.sleep(self._interval)
+        
 
     async def process_digest_data(self, camera_id: int, start: datetime, end: datetime=None):
         """ chama a partir de no mímino um periodo mínimo de self._digest_time[camera_id]
@@ -280,7 +286,7 @@ class ServicoOEE:
         for turno in turnos_pendentes:
             logger.debug(f"[camera_id:{camera_id}] Turno pendente: {turno}")
             
-            oee_data = await oee_by_period(
+            oee_data = await services.oee_by_period(
                                 inicio=turno['start'], 
                                 fim=turno['end'], 
                                 camera_name_id=camera_id, 
@@ -377,16 +383,21 @@ class ServicoOEE:
 
     # Métodos auxiliares
     async def _listar_setup_por_camera(self):
-        cameras = self._listar_cameras()
+        #cameras = self._listar_cameras()
      
-        for camera_id in cameras:
+        for camera_id in self.cameras_disponiveis:
             setup = await crud.get_oee_setup_by_camera_name_id(db=self.db_session, camera_name_id=camera_id)
             self._cache_setupoee[camera_id] = setup
             logger.debug(f"[camera_id:{camera_id}] cacheando setup")
         
-    def _listar_cameras(self) -> List:
+    async def _listar_cameras(self) -> List:
             # Retorne a lista de ID's de câmeras do banco
-            return [2]
+            #return [2]
+            cameras_disponiveis = await services.fetch_enderecos_camera(
+                self.db_external, nome_inicial="Câmera"
+            )
+
+            self.cameras_disponiveis = [item["id"] for item in cameras_disponiveis]
     
     async def _carregar_setup_parada_planejada(self, camera_id):
         """
