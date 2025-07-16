@@ -3,7 +3,9 @@ import './TesteOEESetup.css';
 import ShiftForm from './ShiftForm';
 import ShiftList from './ShiftList';
 import { useAuditoria } from '../../hooks/useAuditoria';
+import { useCameras } from '../../context/CamerasContext';
 
+/*
 const cameraIds = import.meta.env.VITE_CAMERAS
   ? import.meta.env.VITE_CAMERAS.split(',').map(id => parseInt(id.trim()))
   : [];
@@ -12,6 +14,7 @@ const cameraOptions = cameraIds.map(id => ({
   id,
   name: `Câmera ${id}`,
 }));
+*/
 
 const TesteOEESetup = () => {
   const [shifts, setShifts] = useState([]);
@@ -21,6 +24,7 @@ const TesteOEESetup = () => {
   const [selectedDays, setSelectedDays] = useState([]);
   const [editingId, setEditingId] = useState(null);
 
+  const { cameras, cameraDefault } = useCameras();
   const [cameraType, setCameraType] = useState('');
   const [cameraId, setCameraId] = useState(null);
   const [cycleTime, setCycleTime] = useState('');
@@ -101,7 +105,8 @@ const TesteOEESetup = () => {
 
   const handleCameraChange = async (e) => {
     const selectedId = Number(e.target.value);
-    const selectedName = cameraOptions.find((c) => c.id === selectedId)?.name || '';
+    //const selectedName = cameraOptions.find((c) => c.id === selectedId)?.name || '';
+    const selectedName = cameras.find((c) => c.id === selectedId)?.nome || '';
 
     setCameraId(selectedId);
     setCameraType(selectedName);
@@ -192,9 +197,9 @@ const TesteOEESetup = () => {
         <h3>📷 Tipo de Câmera</h3>
         <select value={cameraId || ''} onChange={handleCameraChange}>
           <option value="">Selecione...</option>
-          {cameraOptions.map((cam) => (
+          {cameras.map((cam) => (
             <option key={cam.id} value={cam.id}>
-              {cam.name}
+              {cam.nome}
             </option>
           ))}
         </select>

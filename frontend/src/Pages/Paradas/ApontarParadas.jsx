@@ -24,25 +24,15 @@ import './ApontarParadas.css';
 import Teste from './teste';
 import { useDataInicioFim } from '../../services/useDataInicioFim';
 import { useAuditoria } from '../../hooks/useAuditoria';
+import { useCameras } from '../../context/CamerasContext';
 
 
 const { Option } = Select;
 
 const ApontarParadas = () => {
-  
-  /*
-  const [paradas, setParadas] = useState([
-    { id: 1, startTime: "2025-03-19 10:00:00", endTime: "2025-03-19 10:15:00", paradaType: "planejada", paradaID: 1, paradaName: "Alongamento", obs: "" },
-    { id: 2, startTime: "2025-03-19 12:00:00", endTime: "2025-03-19 13:00:00", paradaType: "planejada", paradaID: 2, paradaName: "Almoço", obs: "" },
-    { id: 3, startTime: "2025-03-19 14:30:00", endTime: "2025-03-19 14:45:00", paradaType: "naoPlanejada", paradaID: 3, paradaName: "Falha na Máquina", obs: "Falha no processador." },
-    { id: 4, startTime: "2025-03-19 15:00:00", endTime: "2025-03-19 15:10:00", paradaType: "naoPlanejada", paradaID: 0, paradaName: "Não justificada", obs: "" },
-    { id: 5, startTime: "2025-03-19 15:15:00", endTime: "2025-03-19 15:30:00", paradaType: "planejada", paradaID: 1, paradaName: "Alongamento", obs: "" },
-    { id: 6, startTime: "2025-03-19 16:00:00", endTime: "2025-03-19 17:00:00", paradaType: "naoPlanejada", paradaID: 4, paradaName: "Falta de energia", obs: "Falha no sistema de alimentação de energia" },
-  ]);
-
-  const [selectedParada, setSelectedParada] = useState(paradas[0]);
-  */
-  const [cameraId, setCameraId] = useState(Number(import.meta.env.VITE_CAMERA_DEFAULT) || 1);
+  const { cameras, cameraDefault } = useCameras();
+  const [cameraId, setCameraId] = useState(null);
+  //const [cameraId, setCameraId] = useState(Number(import.meta.env.VITE_CAMERA_DEFAULT) || 1);
   //const [fim, setFim] = useState("2025-04-01 17:00:00");
   const { inicio, setInicio, fim, setFim } = useDataInicioFim();
   const [paradas, setParadas] = useState([]);
@@ -53,11 +43,18 @@ const ApontarParadas = () => {
   const { registrarAuditoria } = useAuditoria();
 
   // Carregar as câmeras do arquivo .env
-  const cameras = import.meta.env.VITE_CAMERAS ? import.meta.env.VITE_CAMERAS.split(',') : [];
+  //const cameras = import.meta.env.VITE_CAMERAS ? import.meta.env.VITE_CAMERAS.split(',') : [];
 
   const registro = async (action, detalhe) => {
     await registrarAuditoria("TELA PARADAS", action, detalhe);
   };
+
+  // Define o cameraId quando o contexto carrega
+  useEffect(() => {
+    if (cameraDefault){
+      setCameraId(cameraDefault);
+    }
+  }, [cameraDefault]);
 
   const buscarParadas = async () => {
     if (new Date(inicio) >= new Date(fim)) {
@@ -164,10 +161,12 @@ const ApontarParadas = () => {
   }, []);
   
   useEffect(() => {
-    if (inicio && fim) {
-      buscarParadas();
-    }
-  }, [inicio, fim]);
+    if (cameraId !== null) {
+      if (inicio && fim) {
+        buscarParadas();
+      }
+  }
+  }, [inicio, fim, cameraId]);
 
   return (
     <div>
@@ -199,22 +198,26 @@ const ApontarParadas = () => {
               </Button>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <label>Câmera:</label>
-              <Select
-                  value={cameraId}
-                  onChange={async (value) => {
-                    setCameraId(value);
-                    await registro("ALTERAÇÃO", `Tipo de câmera alterada: ${value}`);
-                  }}
-                >
-                  {cameras.map((camera) => (
-                    <Option key={camera} value={camera}>
-                      {`${camera}`}
-                    </Option>
-                  ))}
-                </Select>
-            </div>
+            
+            {cameras.length > 1 && (
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <label>Câmera:</label>
+                <Select
+                    value={cameraId}
+                    onChange={async (value) => {
+                      setCameraId(value);
+                      await registro("ALTERAÇÃO", `Tipo de câmera alterada: ${value}`);
+                    }}
+                  >
+                    {cameras.map((camera) => (
+                      <Option key={camera.id} value={camera.id}>
+                        {`${camera.nome}`}
+                      </Option>
+                    ))}
+                  </Select>
+              </div>
+            )}
+
           </div>
         </div>
 

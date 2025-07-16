@@ -98,12 +98,14 @@ const OEEDinamico = () => {
   }, [cameraDefault]);
 
   useEffect(() => {
-    // Chama o fetchData imediatamente e a cada 60 segundos
-    fetchData();  // Chama imediatamente na primeira renderização
-    registrarAberturaTela();
-    const intervalId = setInterval(fetchData, 60000);  // 60.000ms = 1 minuto
+    if (cameraId !== null) {
+      // Chama o fetchData imediatamente e a cada 60 segundos
+      fetchData();  // Chama imediatamente na primeira renderização
+      registrarAberturaTela();
+      const intervalId = setInterval(fetchData, 60000);  // 60.000ms = 1 minuto
 
-    return () => clearInterval(intervalId);  // Limpa o intervalo quando o componente for desmontado
+      return () => clearInterval(intervalId);  // Limpa o intervalo quando o componente for desmontado
+    }
   }, [cameraId]);  // O array vazio faz com que o efeito seja executado apenas uma vez após a montagem do componente
   
 

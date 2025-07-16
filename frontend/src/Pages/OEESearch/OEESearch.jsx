@@ -13,6 +13,7 @@ import GraficoLinha from './Analises/GraficoLinha';
 import TotalProduzido from './Analises/TotalProduzido';
 import DowntimeChart from './Analises/DownTimeChart';
 import { useAuditoria } from '../../hooks/useAuditoria';
+import { useCameras } from '../../context/CamerasContext';
 
 const { Option } = Select;
 
@@ -20,17 +21,24 @@ const OEESearch = () => {
   const [oeeData, setOeeData] = useState([]);
   const [startDate, setStartDate] = useState(new Date()); // Estado para a data de início
   const [endDate, setEndDate] = useState(new Date()); // Estado para a data de fim
-  const [cameraId, setCameraId] = useState(Number(import.meta.env.VITE_CAMERA_DEFAULT) || 1); // Estado para o ID da câmera, com valor padrão vindo do .env
-
+  //const [cameraId, setCameraId] = useState(Number(import.meta.env.VITE_CAMERA_DEFAULT) || 1); // Estado para o ID da câmera, com valor padrão vindo do .env
   //const [mediaIndicadoresTotalProducao, setMediaIndicadoresTotalProducao] = useState([])
-
   // Carregar as câmeras do arquivo .env
-  const cameras = import.meta.env.VITE_CAMERAS ? import.meta.env.VITE_CAMERAS.split(',') : [];
+  //const cameras = import.meta.env.VITE_CAMERAS ? import.meta.env.VITE_CAMERAS.split(',') : [];
+  const { cameras, cameraDefault } = useCameras();
+  const [cameraId, setCameraId] = useState(null);
   const { registrarAuditoria } = useAuditoria();
 
   const registro = async (action, detalhe) => {
     await registrarAuditoria("TELA BUSCA OEE", action, detalhe);
   };
+
+  // Define o cameraId quando o contexto carrega
+  useEffect(() => {
+    if (cameraDefault){
+      setCameraId(cameraDefault);
+    }
+  }, [cameraDefault]);
 
   const setStartOfDay = (date) => {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
@@ -115,22 +123,25 @@ const OEESearch = () => {
                     />
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <label>Câmera:</label>
-                  <Select
-                    value={cameraId}
-                    onChange={async (value) => {
-                      setCameraId(value);
-                      await registro("ALTERAÇÃO", `Tipo de câmera alterada: ${value}`);
-                    }}
-                  >
-                    {cameras.map((camera) => (
-                      <Option key={camera} value={camera}>
-                        {`${camera}`}
-                      </Option>
-                    ))}
-                  </Select>
-                </div>
+                
+                {cameras.length > 1 && (
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <label>Câmera:</label>
+                    <Select
+                      value={cameraId}
+                      onChange={async (value) => {
+                        setCameraId(value);
+                        await registro("ALTERAÇÃO", `Tipo de câmera alterada: ${value}`);
+                      }}
+                    >
+                      {cameras.map((camera) => (
+                        <Option key={camera.id} value={camera.id}>
+                          {`${camera.nome}`}
+                        </Option>
+                      ))}
+                    </Select>
+                  </div>
+                )}
                 <Button type="primary" onClick={fetchData}>Buscar</Button>
               </div>
             </div>

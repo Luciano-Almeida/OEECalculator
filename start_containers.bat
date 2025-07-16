@@ -1,6 +1,6 @@
 @echo off
-cd /d D:\projetos\OEEcalculator
-REM cd /d C:\Users\Gautama\Documents\OEECalculator
+REM cd /d D:\projetos\OEEcalculator
+cd /d C:\Users\Gautama\Documents\OEECalculator
 docker-compose up -d
 
 REM echo.
