@@ -10,7 +10,7 @@ export const useCameras = () => {
 
 export const CameraProvider = ({ children }) => {
     const [cameras, setCameras] = useState([]);
-    const [cameraDefault, setCameraDefault] = useState(1);
+    const [cameraDefault, setCameraDefault] = useState(null);
 
     // Função para pegar as câmeras disponíveis
     const fetchCameras = async () => {
