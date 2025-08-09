@@ -184,7 +184,14 @@ const OEEDinamico = () => {
             <h3 style={{ textAlign: 'center' }}>Velocidade (ppm)</h3>
             <hr style={{ borderColor: '#aaa', width: '95%' }} />
             {/*<GraficoCustomPieChart valor_real={velocidade_real} valor_previsto={responseData['I_Tempo_ideal_ciclo']} />*/}
-            <PieChartWithNeedleGrafico valor_real={velocidade_real} valor_previsto={responseData['I_Tempo_ideal_ciclo']} />
+            <PieChartWithNeedleGrafico 
+              valor_real={
+                isNaN(velocidade_real) ? 1 : velocidade_real
+              } 
+              valor_previsto={
+                isNaN(responseData['I_Tempo_ideal_ciclo']) ? 1 : responseData['I_Tempo_ideal_ciclo']
+              } 
+            />
           </div>
         </div>
 
