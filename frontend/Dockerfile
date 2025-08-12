@@ -18,5 +18,5 @@ EXPOSE 3000
 
 # Comando para rodar
 #CMD ["npm", "start"]
-CMD ["npm", "run", "dev"]
-#CMD ["npm", "run", "dev", "--reload"]
+#CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "--reload"]

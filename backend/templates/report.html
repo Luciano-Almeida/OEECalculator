@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Relatório OEE</title>
+  
+</head>
+<body>
+  <header>
+    <div style="width: 28px; height: 28px;">
+      {% include "logo_gautama.svg" %}
+    </div>
+    <h1> Relatório de Performance - OEE</h1>
+  </header>
+
+  <div class="cover">
+    <p><strong>Câmera:</strong> {{ camera_name }}</p>
+  </div>
+
+  <div class="content">
+    {% for imagem, divs in dados %}
+      <div>
+        <p>{{ divs }}</p>
+        <img src="{{ imagem }}" alt="Gráfico">
+      </div>
+    {% endfor %}
+  </div>
+
+  <footer style="text-align: left; margin-top: 50px;">
+    <p style="font-size: 16px">Relatório gerado em: {{ date_str }} por Usuário: {{ usuario }}</p>
+    <a href="https://www.gautama-automacao.com.br" target="_blank" style="text-decoration: none; font-size: 12px; color: inherit;">
+      www.gautama-automacao.com.br
+    </a>
+  </footer>
+</body>
+</html>

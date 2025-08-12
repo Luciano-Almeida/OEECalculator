@@ -21,7 +21,7 @@ const MediasIndicadores = ({ oeeData }) => {
   const avgQualidade = calcularMedia(oeeData, 'quality');
 
   return (
-    <div style={{ width: '100%', marginTop: '10px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '10px', boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)' }}>
+    <div className="grafico-exportavel" style={{ width: '100%', marginTop: '10px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '10px', boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)' }}>
       <h3 style={{ textAlign: 'center' }}>Médias do período</h3>
       <hr style={{ borderColor: '#aaa', width: '95%', marginBottom: '10px' }} />
       <label>Insights: Verificar a média geral no período.</label>

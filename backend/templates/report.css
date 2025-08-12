@@ -1,0 +1,49 @@
+@page {
+    size: A4;
+    margin: 20mm;
+}
+body {
+    text-align: left;
+    font-family: Arial, sans-serif;
+}
+header {
+    display: flex;
+    align-items: center; /* Alinha verticalmente ao centro */
+    justify-content: flex-start;
+    gap: 10px; /* Espaço entre o logo e o título */
+    top: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: rgb(34, 151, 82);
+    /*padding-top: 5mm;*/
+    /*height: 30mm;*/
+    font-size: 18px;
+    background: white; /* evita sobreposição com conteúdo */
+}
+
+/* Empurra conteúdo para não colidir com header */
+.cover {
+    margin-top: 5mm;
+}
+
+.page-break {
+    page-break-before: always;
+    break-before: page;
+}
+img {
+    max-width: 100%;
+    height: auto;
+    max-height: 25cm; /* Aproximadamente a altura útil de uma página A4 */
+    page-break-inside: avoid;
+    display: block;
+    /*margin: 0 auto; */
+    object-fit: contain;
+}
+
+footer {
+    text-align: center;
+    font-size: 0.8em;
+    color: #777;
+    margin-top: 50px;
+}

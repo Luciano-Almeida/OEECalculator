@@ -36,7 +36,7 @@ const GraficoLinha = ({ oeeData }) => {
   console.log("linha", oeeData);
 
   return (
-    <div style={{ width: '100%', marginTop: '10px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '10px', boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)' }}>
+    <div className="grafico-exportavel" style={{ width: '100%', marginTop: '10px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '10px', boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)' }}>
       <h3 style={{ textAlign: 'center' }}>Evolução do OEE, Disponibilidade, Desempenho e Qualidade</h3>
       <hr style={{ borderColor: '#aaa', width: '95%', marginBottom: '10px' }} />
       <label>Insights: Identificar padrões sazonais ou falhas repetitivas no período.</label>

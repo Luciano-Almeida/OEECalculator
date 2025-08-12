@@ -8,6 +8,7 @@ from .digest_data import router as digest_data_router
 from .external_db import router as external_db_router
 from .oee import router as oee_router
 from .paradas import router as paradas_router
+from .pdf import router as pdf_router
 from .setup_paradas import router as setup_paradas_router
 from .setup_oee import router as setup_oee_router
 from .status import router as status_router
@@ -25,6 +26,7 @@ api_router.include_router(digest_data_router, tags=["digest_data_router"])
 api_router.include_router(external_db_router, tags=["external_db_router"]) 
 api_router.include_router(oee_router, tags=["oee_router"]) 
 api_router.include_router(paradas_router, tags=["paradas_router"])
+api_router.include_router(pdf_router, tags=["pdf_router"])
 api_router.include_router(setup_oee_router, tags=["setup_oee_router"])
 api_router.include_router(setup_paradas_router, tags=["setup_paradas_router"])
 api_router.include_router(status_router, tags=["status_router"])
