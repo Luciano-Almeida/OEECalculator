@@ -196,7 +196,7 @@ const OEEDinamico = () => {
         </div>
 
         {/* Seção de Indicadores */}
-        <div style={{ width: '58%', marginTop: '10px', padding: '15px' , backgroundColor: '#f8f9fa', borderRadius: '10px', boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)' }}>
+        <div style={{ width: '55%', marginTop: '10px', padding: '15px' , backgroundColor: '#f8f9fa', borderRadius: '10px', boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)' }}>
           <h2 style={{ textAlign: 'center' }}>Indicadores de Performance</h2>
           <hr style={{ borderColor: '#aaa', width: '100%' }} />
 

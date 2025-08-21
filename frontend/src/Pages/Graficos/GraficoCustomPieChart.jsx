@@ -7,6 +7,8 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
+import './GraficoCustomPieChart.css';
+
 const GraficoCustomPieChart = ({ produzidoTotal, produzidoBons, planejado }) => {
   const clampedValorReal = Math.min(produzidoTotal, planejado);
   const produzidoRuins = Math.max(produzidoTotal - produzidoBons, 0);
@@ -32,9 +34,9 @@ const GraficoCustomPieChart = ({ produzidoTotal, produzidoBons, planejado }) => 
   const COLORS_INTERNO = ['#00C49F', '#FF8042'];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'row', width: '100%', height: 200, alignItems: 'center' }}>
-      <div style={{ width: '100%', height: 200 }}>
-        <ResponsiveContainer>
+    <div style={{ display: 'flex', flexDirection: 'row', width: '100%', maxHeight: '200px', minHeight: '100px', alignItems: 'center' }}>
+      <div style={{ width: '100%' }}>
+        <ResponsiveContainer width="100%" aspect={1}>
           <PieChart>
             {/* Anel externo - Total produzido vs Meta */}
             <Pie
@@ -49,42 +51,29 @@ const GraficoCustomPieChart = ({ produzidoTotal, produzidoBons, planejado }) => 
               ))}
             </Pie>
 
-            {/* Anel interno - Bons vs Ruins 
-            <Pie
-              data={dataInterno}
-              dataKey="value"
-              outerRadius={55}
-              innerRadius={40}
-              isAnimationActive={true}
-            >
-              {dataInterno.map((entry, index) => (
-                <Cell key={`cell-interno-${index}`} fill={COLORS_INTERNO[index % COLORS_INTERNO.length]} />
-              ))}
-            </Pie>*/}
-
             <Tooltip />
           </PieChart>
         </ResponsiveContainer>
       </div>
 
       {/* Labels */}
-      <div className="info-label">
-        <div className="info-card">
-          <div className="info-title">Meta</div>
-          <div className="info-value valor-meta">
-            {Math.ceil(planejado)} <span className="info-unit">unidades</span>
+      <div className="info-label-2">
+        <div className="info-card-2">
+          <div className="info-title-2">Meta</div>
+          <div className="info-value-2 valor-meta-2">
+            {Math.ceil(planejado)} <span className="info-unit-2">unidades</span>
           </div>
         </div>
-        <div style={{display: "flex", gap: "20px"}}>
-          <div className="info-card">
-            <div className="info-title">Bons </div>
-            <div className="info-value valor-real">
+        <div className="info-row-2">
+          <div className="info-card-2">
+            <div className="info-title-2">Bons </div>
+            <div className="info-value-2 valor-real-2">
               {produzidoBons} 
             </div>
           </div>
-          <div className="info-card">
-            <div className="info-title">Ruins</div>
-            <div className="info-value valor-ruins" style={{color: COLORS_EXTERNO[1]}}>
+          <div className="info-card-2">
+            <div className="info-title-2">Ruins</div>
+            <div className="info-value-2 valor-ruins-2" style={{color: COLORS_EXTERNO[1]}}>
               {produzidoRuins} 
             </div>
           </div>

@@ -12,7 +12,7 @@ body {
   display: flex;
   flex-direction: row;
   min-height: 100vh;
-  width: 100vw;
+  width: 99vw;
 }
 
 /* Barra superior */
@@ -21,7 +21,7 @@ body {
   color: white;
   display: flex;
   align-items: center;
-  height: 90px;
+  height: 70px;
   box-shadow: 0 0 0 20px rgb(34, 151, 82);
 }
 
@@ -34,7 +34,7 @@ body {
 }
 
 .logo {
-  height: 90px;
+  height: 70px;
 }
 
 /* Conteúdo principal */
@@ -78,7 +78,7 @@ body {
 
 /* Menu lateral */
 .sidebar {
-  width: 170px;
+  width: 120px;
   background-color: rgba(34, 151, 82, 1);
   padding: 80px 40px 0px 40px ;
   display: flex;
